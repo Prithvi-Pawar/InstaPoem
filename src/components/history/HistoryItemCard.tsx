@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -54,12 +55,17 @@ export default function HistoryItemCard({ item, onDelete }: HistoryItemCardProps
         )}
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-4 border-t">
-        <Link href={`/?fromHistory=${item.id}`} passHref legacyBehavior>
-          <Button variant="outline" size="sm" className="w-full sm:w-auto hover:bg-accent hover:text-accent-foreground border-accent text-accent">
+        <Button 
+          asChild 
+          variant="outline" 
+          size="sm" 
+          className="w-full sm:w-auto hover:bg-accent hover:text-accent-foreground border-accent text-accent"
+        >
+          <Link href={`/?fromHistory=${item.id}`}>
             <Repeat className="w-4 h-4 mr-2" />
             Use this Poem
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <Button 
           variant="destructive" 
           size="sm" 
