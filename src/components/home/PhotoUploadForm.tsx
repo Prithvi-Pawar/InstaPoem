@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -27,11 +28,11 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 4 * 1024 * 1024) { // Max 4MB
+      if (file.size > 10 * 1024 * 1024) { // Max 10MB
         toast({
           variant: "destructive",
           title: "File too large",
-          description: "Please upload an image smaller than 4MB.",
+          description: "Please upload an image smaller than 10MB.",
         });
         return;
       }
@@ -97,7 +98,7 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
             className="file:font-headline file:text-primary-foreground file:bg-primary file:hover:bg-primary/90 file:rounded-md file:px-3 file:py-1.5 file:mr-3"
             aria-describedby="photo-upload-description"
           />
-          <p id="photo-upload-description" className="text-sm text-muted-foreground">Max 4MB. JPG, PNG, WEBP, GIF accepted.</p>
+          <p id="photo-upload-description" className="text-sm text-muted-foreground">Max 10MB. JPG, PNG, WEBP, GIF accepted.</p>
         </div>
 
         {photoPreviewUrl && (
