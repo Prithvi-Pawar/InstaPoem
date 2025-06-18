@@ -1,7 +1,8 @@
+
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 
 interface PoemDisplayEditorProps {
   photoDataUri: string | null;
-  poem: string | null;
+  poem: string | null; // This is the original generated poem
   editedPoem: string;
   onPoemChange: (newPoem: string) => void;
 }
@@ -45,6 +46,13 @@ export default function PoemDisplayEditor({ photoDataUri, poem, editedPoem, onPo
     { value: 'Russian', label: 'Russian' },
     { value: 'Korean', label: 'Korean' },
   ];
+
+  // Effect to reset translation state when the base photo or poem changes
+  useEffect(() => {
+    setSelectedLanguage('');
+    setTranslatedPoem(null);
+  }, [photoDataUri, poem]);
+
 
   const handleTranslatePoem = async () => {
     if (!editedPoem || !selectedLanguage) {
@@ -89,6 +97,7 @@ export default function PoemDisplayEditor({ photoDataUri, poem, editedPoem, onPo
   };
   
   if (!photoDataUri || poem === null) {
+    // If there's no photo or no base poem, don't render this component
     return null; 
   }
 
@@ -123,7 +132,7 @@ export default function PoemDisplayEditor({ photoDataUri, poem, editedPoem, onPo
             </Label>
             <Textarea
               id="poem-editor"
-              value={editedPoem}
+              value={editedPoem} // Display and edit the 'editedPoem'
               onChange={(e) => onPoemChange(e.target.value)}
               placeholder="Your poem will appear here. Edit as you like!"
               rows={15}

@@ -13,15 +13,22 @@ import { useToast } from '@/hooks/use-toast';
 import { generatePoemFromPhoto } from '@/ai/flows/generate-poem-from-photo';
 
 interface PhotoUploadFormProps {
-  onPoemGenerated: (poem: string, photoDataUri: string, photoFileName: string) => void;
+  currentPhotoDataUri: string | null;
+  currentPhotoFileName: string | null;
+  onPhotoChanged: (newPhotoDataUri: string | null, newPhotoFileName: string | null) => void;
+  onPoemGenerated: (poem: string) => void;
   isGenerating: boolean;
   setIsGenerating: (isGenerating: boolean) => void;
 }
 
-export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGenerating }: PhotoUploadFormProps) {
+export default function PhotoUploadForm({ 
+  currentPhotoDataUri,
+  onPhotoChanged, 
+  onPoemGenerated, 
+  isGenerating, 
+  setIsGenerating 
+}: PhotoUploadFormProps) {
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
-  const [photoDataUri, setPhotoDataUri] = useState<string | null>(null);
-  const [photoFileName, setPhotoFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -34,6 +41,9 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
           title: "File too large",
           description: "Please upload an image smaller than 10MB.",
         });
+        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+        onPhotoChanged(null, null); // Notify HomePage to clear state
+        setPhotoPreviewUrl(null);
         return;
       }
       if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
@@ -42,21 +52,28 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
           title: "Invalid file type",
           description: "Please upload a JPG, PNG, WEBP, or GIF image.",
         });
+        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+        onPhotoChanged(null, null); // Notify HomePage to clear state
+        setPhotoPreviewUrl(null);
         return;
       }
 
-      setPhotoFileName(file.name);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoDataUri(reader.result as string);
-        setPhotoPreviewUrl(URL.createObjectURL(file));
+        const dataUri = reader.result as string;
+        setPhotoPreviewUrl(URL.createObjectURL(file)); // Keep preview URL logic
+        onPhotoChanged(dataUri, file.name);
       };
       reader.readAsDataURL(file);
+    } else {
+      // No file selected or selection was cancelled
+      onPhotoChanged(null, null);
+      setPhotoPreviewUrl(null);
     }
   };
 
   const handleGeneratePoem = async () => {
-    if (!photoDataUri || !photoFileName) {
+    if (!currentPhotoDataUri) {
       toast({
         variant: "destructive",
         title: "No photo selected",
@@ -66,8 +83,8 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
     }
     setIsGenerating(true);
     try {
-      const result = await generatePoemFromPhoto({ photoDataUri });
-      onPoemGenerated(result.poem, photoDataUri, photoFileName);
+      const result = await generatePoemFromPhoto({ photoDataUri: currentPhotoDataUri });
+      onPoemGenerated(result.poem);
     } catch (error) {
       console.error("Error generating poem:", error);
       toast({
@@ -79,6 +96,34 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
       setIsGenerating(false);
     }
   };
+  
+  // Effect to update preview if currentPhotoDataUri changes from HomePage (e.g., from history)
+  // or if it's cleared by HomePage.
+  useState(() => {
+    if (currentPhotoDataUri) {
+        // Only attempt to create object URL if it's a new upload not yet previewed or from history
+        // This check avoids issues if currentPhotoDataUri is already a data URI.
+        // For simplicity, we assume if photoPreviewUrl is not set, we might need to set it.
+        // This might need more robust handling if direct data URI display is preferred over ObjectURL for preview.
+        if (currentPhotoDataUri.startsWith('data:image')) {
+             // If it's a data URI, we can use it directly for preview,
+             // or create an Object URL if preferred (currently done in handleFileChange)
+             // For consistency with handleFileChange, let's assume if it's a data URI, a preview might have been set.
+             // If not, this could be a point of enhancement.
+             // For now, if currentPhotoDataUri is set (e.g. from history), and photoPreviewUrl is not,
+             // it means we might want to show it.
+             // However, PhotoUploadForm should primarily show preview for *new* uploads.
+             // History items are handled by PoemDisplayEditor.
+             // So, if currentPhotoDataUri is null, clear preview.
+        }
+    } else {
+        setPhotoPreviewUrl(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    }
+  }, [currentPhotoDataUri]);
+
 
   return (
     <Card className="w-full shadow-lg">
@@ -118,7 +163,7 @@ export default function PhotoUploadForm({ onPoemGenerated, isGenerating, setIsGe
 
         <Button
           onClick={handleGeneratePoem}
-          disabled={!photoDataUri || isGenerating}
+          disabled={!currentPhotoDataUri || isGenerating}
           className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-base py-6 font-headline"
           aria-label="Generate poem from uploaded photo"
         >

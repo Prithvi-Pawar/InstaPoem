@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,18 +27,22 @@ export default function HomePage() {
       if (item) {
         setPhotoDataUri(item.photoDataUri);
         setPhotoFileName(item.photoFileName || 'historical_photo.jpg');
-        setGeneratedPoem(item.poem); // Assuming original poem was stored
+        setGeneratedPoem(item.poem); 
         setEditedPoem(item.poem);
       }
     }
   }, [getHistoryItem]);
 
+  const handlePhotoChanged = (newPhotoDataUri: string | null, newPhotoFileName: string | null) => {
+    setPhotoDataUri(newPhotoDataUri);
+    setPhotoFileName(newPhotoFileName);
+    setGeneratedPoem(null);
+    setEditedPoem('');
+  };
 
-  const handlePoemGenerated = (poem: string, pDataUri: string, pFileName: string) => {
+  const handlePoemGenerated = (poem: string) => {
     setGeneratedPoem(poem);
     setEditedPoem(poem);
-    setPhotoDataUri(pDataUri);
-    setPhotoFileName(pFileName);
   };
 
   const handlePostScheduled = (scheduledItem: PoemHistoryItem) => {
@@ -56,7 +61,10 @@ export default function HomePage() {
         <p className="text-lg text-foreground/80 text-center mb-8 max-w-2xl mx-auto">
           Turn your photos into beautiful poetry. Upload an image, let our AI inspire you, then schedule your masterpiece for Instagram.
         </p>
-        <PhotoUploadForm 
+        <PhotoUploadForm
+          currentPhotoDataUri={photoDataUri}
+          currentPhotoFileName={photoFileName}
+          onPhotoChanged={handlePhotoChanged}
           onPoemGenerated={handlePoemGenerated}
           isGenerating={isGeneratingPoem}
           setIsGenerating={setIsGeneratingPoem}
