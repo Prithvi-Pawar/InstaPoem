@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -19,9 +20,18 @@ interface SchedulerFormProps {
   currentPhotoDataUri: string | null;
   currentPhotoFileName: string | null;
   onPostScheduled: (scheduledItem: PoemHistoryItem) => void;
+  currentPoemId: string | null;
+  currentPoemCreatedAt: string | null;
 }
 
-export default function SchedulerForm({ currentPoem, currentPhotoDataUri, currentPhotoFileName, onPostScheduled }: SchedulerFormProps) {
+export default function SchedulerForm({ 
+  currentPoem, 
+  currentPhotoDataUri, 
+  currentPhotoFileName, 
+  onPostScheduled,
+  currentPoemId,
+  currentPoemCreatedAt
+}: SchedulerFormProps) {
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [scheduledTime, setScheduledTime] = useState<string>(''); // HH:mm format
   const [hashtags, setHashtags] = useState<string>('');
@@ -75,12 +85,12 @@ export default function SchedulerForm({ currentPoem, currentPhotoDataUri, curren
     }
 
     const newHistoryItem: PoemHistoryItem = {
-      id: crypto.randomUUID(),
+      id: currentPoemId || crypto.randomUUID(), // Use existing ID if available
       photoDataUri: currentPhotoDataUri,
       photoFileName: currentPhotoFileName ?? 'uploaded-photo.jpg',
       poem: currentPoem,
       hashtags: hashtags.split(',').map(h => h.trim()).filter(h => h),
-      createdAt: new Date().toISOString(),
+      createdAt: currentPoemCreatedAt || new Date().toISOString(), // Use existing createdAt if available
       scheduledAt: finalScheduledDateTime.toISOString(),
     };
 
@@ -93,7 +103,7 @@ export default function SchedulerForm({ currentPoem, currentPhotoDataUri, curren
       description: `Your poem will be "posted" on ${format(finalScheduledDateTime, "PPP p")}.`,
     });
     
-    // Reset form fields
+    // Reset form fields, but not the core poem ID/createdAt from props
     setScheduledDate(undefined);
     setScheduledTime('');
     setHashtags('');
