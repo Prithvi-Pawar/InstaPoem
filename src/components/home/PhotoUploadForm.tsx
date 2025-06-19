@@ -60,10 +60,16 @@ export default function PhotoUploadForm({
       reader.onloadend = () => {
         const dataUri = reader.result as string;
         onPhotoChanged(dataUri, file.name);
+        if (fileInputRef.current) { // Reset file input after successful processing
+          fileInputRef.current.value = "";
+        }
       };
       reader.readAsDataURL(file);
     } else {
       onPhotoChanged(null, null);
+      if (fileInputRef.current) { // Also reset if no file is selected (e.g., user cancels dialog)
+        fileInputRef.current.value = "";
+      }
     }
   }, [onPhotoChanged, toast]);
 
@@ -115,8 +121,9 @@ export default function PhotoUploadForm({
     }
   };
   
+  // This effect clears the input if the parent component nullifies the photo
   useEffect(() => {
-    if (!currentPhotoDataUri && fileInputRef.current) {
+    if (!currentPhotoDataUri && fileInputRef.current && fileInputRef.current.value) {
         fileInputRef.current.value = "";
     }
   }, [currentPhotoDataUri]);
@@ -132,7 +139,6 @@ export default function PhotoUploadForm({
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          // Removed onClick handler from this div
         >
           <Input
             id="photo-upload-dnd"
