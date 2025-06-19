@@ -52,6 +52,8 @@ export default function PoemDisplayEditor({
     { value: 'Japanese', label: 'Japanese' },
     { value: 'Chinese (Simplified)', label: 'Chinese (Simplified)' },
     { value: 'Hindi', label: 'Hindi' },
+    { value: 'Marathi', label: 'Marathi' },
+    { value: 'Sanskrit', label: 'Sanskrit' },
     { value: 'Arabic', label: 'Arabic' },
     { value: 'Russian', label: 'Russian' },
     { value: 'Korean', label: 'Korean' },
