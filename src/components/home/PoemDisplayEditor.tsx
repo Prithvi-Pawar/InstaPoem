@@ -201,7 +201,7 @@ export default function PoemDisplayEditor({
                   <SelectTrigger id="language-select-inline" className="w-full mt-1 h-10 text-sm">
                     <SelectValue placeholder="Select language..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover/45 backdrop-blur-sm">
                     {languages.map(lang => (
                       <SelectItem key={lang.value} value={lang.value} className="text-sm">{lang.label}</SelectItem>
                     ))}
