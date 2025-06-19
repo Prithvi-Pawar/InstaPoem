@@ -9,7 +9,7 @@ import { usePoemHistory } from '@/hooks/use-poem-history';
 import type { PoemHistoryItem } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Sparkles as SparklesIcon, FileImage, UploadCloud } from 'lucide-react';
+import { Sparkles as SparklesIcon, FileImage, UploadCloud, Feather } from 'lucide-react'; // Added Feather
 
 export default function HomePage() {
   const [photoDataUri, setPhotoDataUri] = useState<string | null>(null);
@@ -21,31 +21,42 @@ export default function HomePage() {
   const [currentPoemId, setCurrentPoemId] = useState<string | null>(null);
   const [currentPoemCreatedAt, setCurrentPoemCreatedAt] = useState<string | null>(null);
   
-  const { saveHistoryItem, getHistoryItem } = usePoemHistory();
+  const { saveHistoryItem, getHistoryItem, isHistoryLoading } = usePoemHistory();
   const poemSectionRef = useRef<HTMLDivElement>(null);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+
+  // Ref to track if the initial load from history URL parameter has been processed for a specific ID
+  const initialLoadFromHistoryProcessed = useRef<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const historyId = params.get('fromHistory');
-    if (historyId) {
+
+    // Only process if:
+    // 1. historyId exists in the URL.
+    // 2. We haven't already processed *this specific* historyId.
+    // 3. Poem history itself is not currently loading.
+    if (historyId && initialLoadFromHistoryProcessed.current !== historyId && !isHistoryLoading) {
       const item = getHistoryItem(historyId);
       if (item) {
         setPhotoDataUri(item.photoDataUri);
         setPhotoFileName(item.photoFileName || 'historical_photo.jpg');
         setGeneratedPoem(item.poem); 
-        setEditedPoem(item.poem);
+        setEditedPoem(item.poem); // Set editor content
         setCurrentPoemId(item.id);
         setCurrentPoemCreatedAt(item.createdAt);
         
+        initialLoadFromHistoryProcessed.current = historyId; // Mark this ID as processed
+
         setTimeout(() => {
           poemSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
       }
+      // Always clear the URL param after attempting to process
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [getHistoryItem]);
+  }, [getHistoryItem, isHistoryLoading]); // Dependencies
 
   const handlePhotoChanged = (newPhotoDataUri: string | null, newPhotoFileName: string | null) => {
     setPhotoDataUri(newPhotoDataUri);
@@ -54,6 +65,7 @@ export default function HomePage() {
     setEditedPoem('');
     setCurrentPoemId(null);
     setCurrentPoemCreatedAt(null);
+    initialLoadFromHistoryProcessed.current = null; // Reset when photo changes
   };
 
   const handlePoemGenerated = (poem: string) => {
@@ -63,7 +75,7 @@ export default function HomePage() {
     let idToUse = currentPoemId;
     let createdAtToUse = currentPoemCreatedAt;
 
-    if (!idToUse) { // Only generate new ID and timestamp if it's a truly new poem session
+    if (!idToUse) { 
         idToUse = crypto.randomUUID();
         createdAtToUse = new Date().toISOString();
         setCurrentPoemId(idToUse);
@@ -76,7 +88,7 @@ export default function HomePage() {
         photoDataUri: photoDataUri,
         photoFileName: photoFileName,
         poem: poem,
-        caption: poem, // Default caption to poem
+        caption: poem, 
         hashtags: [], 
         createdAt: createdAtToUse,
         scheduledAt: undefined, 
@@ -88,43 +100,51 @@ export default function HomePage() {
     }
   };
 
+  // Auto-save edited poem to history
   useEffect(() => {
-    if (currentPoemId && currentPoemCreatedAt && photoDataUri && editedPoem && 
-        (editedPoem !== generatedPoem || !generatedPoem) // Check if editedPoem actually changed
-    ) {
-      const existingItem = getHistoryItem(currentPoemId);
+    // Only save if there's an active poem session, photo URI exists, and poem has meaningful content.
+    if (currentPoemId && currentPoemCreatedAt && photoDataUri && editedPoem.trim() !== '') {
+      const existingItem = getHistoryItem(currentPoemId); // Fetch to preserve hashtags/scheduledAt
       const historyItem: PoemHistoryItem = {
         id: currentPoemId,
         photoDataUri: photoDataUri,
         photoFileName: photoFileName,
         poem: editedPoem, 
-        caption: editedPoem, // Update caption if poem is edited
+        caption: editedPoem, 
         hashtags: existingItem?.hashtags || [], 
         createdAt: currentPoemCreatedAt,
         scheduledAt: existingItem?.scheduledAt,
       };
       saveHistoryItem(historyItem);
     }
-  }, [editedPoem, currentPoemId, currentPoemCreatedAt, photoDataUri, photoFileName, generatedPoem, saveHistoryItem, getHistoryItem]);
+  }, [editedPoem, currentPoemId, currentPoemCreatedAt, photoDataUri, photoFileName, saveHistoryItem, getHistoryItem]);
+
 
   const handlePostScheduled = (scheduledItem: PoemHistoryItem) => {
     saveHistoryItem(scheduledItem);
-    setIsScheduleModalOpen(false); // Close modal on successful schedule
+    setIsScheduleModalOpen(false); 
   };
   
   const openScheduleModal = () => {
-    setIsScheduleModalOpen(true);
+    if (currentPoemId && currentPoemCreatedAt && photoDataUri && editedPoem) {
+       setIsScheduleModalOpen(true);
+    } else {
+        // Optionally, inform user they need a poem first
+        // toast({ title: "No poem to schedule", description: "Please generate or select a poem."});
+    }
   };
 
 
   return (
     <div className="space-y-12 md:space-y-16">
-      <section className="text-center py-12 md:py-20">
+      {/* Hero Section */}
+      <section className="text-center py-12 md:py-16 bg-gradient-to-br from-background via-background to-secondary/10 dark:from-background dark:via-background dark:to-secondary/5 rounded-xl shadow-lg">
         <div className="container mx-auto px-4">
+          <Feather className="w-16 h-16 text-primary mx-auto mb-6 opacity-80" />
           <h1 className="text-4xl sm:text-5xl md:text-5xl font-headline font-bold mb-4 text-primary dark:text-primary-foreground">
             Transform Your Image into Poetry
           </h1>
-          <p className="text-lg md:text-xl text-foreground/80 dark:text-foreground/70 mb-8 max-w-xl mx-auto">
+          <p className="text-lg md:text-xl text-foreground/80 dark:text-foreground/70 mb-10 max-w-xl mx-auto">
             Upload. Inspire. Translate. Share.
           </p>
           
@@ -147,30 +167,32 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Poem Result Section - only shown if a photo has been processed and poem generated */}
       {photoDataUri && generatedPoem !== null && !isGeneratingPoem && (
         <section ref={poemSectionRef} className="animate-fade-in scroll-mt-20">
           <PoemDisplayEditor
             photoDataUri={photoDataUri}
             photoFileName={photoFileName}
-            poem={generatedPoem}
-            editedPoem={editedPoem}
-            onPoemChange={setEditedPoem}
+            poem={generatedPoem} // Pass the original generated poem
+            editedPoem={editedPoem} // Pass the current state of the edited poem
+            onPoemChange={setEditedPoem} // Pass the state setter for editedPoem
             onSchedulePost={openScheduleModal}
           />
         </section>
       )}
 
-      {photoDataUri && editedPoem && !isGeneratingPoem && currentPoemId && (
+      {/* Scheduler Modal - only available if there's an active poem to schedule */}
+      {currentPoemId && photoDataUri && (
          <SchedulerFormWrapper
             isOpen={isScheduleModalOpen}
             setIsOpen={setIsScheduleModalOpen}
-            currentPoem={editedPoem}
+            currentPoem={editedPoem} // Scheduler uses the latest edited version
             currentPhotoDataUri={photoDataUri}
             currentPhotoFileName={photoFileName}
             onPostScheduled={handlePostScheduled}
             currentPoemId={currentPoemId}
             currentPoemCreatedAt={currentPoemCreatedAt}
-            initialCaption={editedPoem}
+            initialCaption={editedPoem} // Caption defaults to the latest poem
           />
       )}
     </div>
