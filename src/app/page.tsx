@@ -4,37 +4,12 @@
 import { useState, useEffect, useRef } from 'react';
 import PhotoUploadForm from '@/components/home/PhotoUploadForm';
 import PoemDisplayEditor from '@/components/home/PoemDisplayEditor';
-import SchedulerForm from '@/components/home/SchedulerForm';
+import SchedulerFormWrapper from '@/components/home/SchedulerFormWrapper';
 import { usePoemHistory } from '@/hooks/use-poem-history';
 import type { PoemHistoryItem } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Camera as CameraIcon, UploadCloud, Sparkles as SparklesIcon, FileImage, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
-
-function HeroSection({ onUploadClick }: { onUploadClick: () => void }) {
-  return (
-    <section className="text-center py-16 md:py-24 bg-gradient-to-br from-[hsl(var(--background-hero-start))] to-[hsl(var(--background-hero-end))] rounded-lg shadow-xl">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-headline font-bold mb-6 text-primary dark:text-primary-foreground">
-          Transform Images into Poetry
-        </h1>
-        <p className="text-lg md:text-xl text-foreground/80 dark:text-foreground/70 mb-10 max-w-2xl mx-auto">
-          Upload any image, and our AI crafts a unique poem—ready to share or translate.
-        </p>
-        <Button 
-          size="lg" 
-          className="bg-accent text-accent-foreground hover:bg-accent/90 animate-pulse text-lg py-7 px-8 font-headline"
-          onClick={onUploadClick}
-          aria-label="Upload an image to start generating a poem"
-        >
-          <CameraIcon className="mr-2 h-6 w-6" />
-          Upload Image &amp; Create Poem
-        </Button>
-      </div>
-    </section>
-  );
-}
+import { Sparkles as SparklesIcon, FileImage, UploadCloud } from 'lucide-react';
 
 export default function HomePage() {
   const [photoDataUri, setPhotoDataUri] = useState<string | null>(null);
@@ -47,7 +22,8 @@ export default function HomePage() {
   const [currentPoemCreatedAt, setCurrentPoemCreatedAt] = useState<string | null>(null);
   
   const { saveHistoryItem, getHistoryItem } = usePoemHistory();
-  const photoUploadSectionRef = useRef<HTMLDivElement>(null);
+  const poemSectionRef = useRef<HTMLDivElement>(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -61,9 +37,9 @@ export default function HomePage() {
         setEditedPoem(item.poem);
         setCurrentPoemId(item.id);
         setCurrentPoemCreatedAt(item.createdAt);
-        // Scroll to photo upload section smoothly after loading from history
+        
         setTimeout(() => {
-          photoUploadSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          poemSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
       }
       const newUrl = window.location.pathname;
@@ -87,7 +63,7 @@ export default function HomePage() {
     let idToUse = currentPoemId;
     let createdAtToUse = currentPoemCreatedAt;
 
-    if (!idToUse) {
+    if (!idToUse) { // Only generate new ID and timestamp if it's a truly new poem session
         idToUse = crypto.randomUUID();
         createdAtToUse = new Date().toISOString();
         setCurrentPoemId(idToUse);
@@ -100,26 +76,32 @@ export default function HomePage() {
         photoDataUri: photoDataUri,
         photoFileName: photoFileName,
         poem: poem,
+        caption: poem, // Default caption to poem
         hashtags: [], 
         createdAt: createdAtToUse,
         scheduledAt: undefined, 
       };
       saveHistoryItem(historyItem);
+      setTimeout(() => {
+        poemSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   };
 
   useEffect(() => {
     if (currentPoemId && currentPoemCreatedAt && photoDataUri && editedPoem && 
-        (editedPoem !== generatedPoem || !generatedPoem) 
+        (editedPoem !== generatedPoem || !generatedPoem) // Check if editedPoem actually changed
     ) {
+      const existingItem = getHistoryItem(currentPoemId);
       const historyItem: PoemHistoryItem = {
         id: currentPoemId,
         photoDataUri: photoDataUri,
         photoFileName: photoFileName,
         poem: editedPoem, 
-        hashtags: getHistoryItem(currentPoemId)?.hashtags || [], 
+        caption: editedPoem, // Update caption if poem is edited
+        hashtags: existingItem?.hashtags || [], 
         createdAt: currentPoemCreatedAt,
-        scheduledAt: getHistoryItem(currentPoemId)?.scheduledAt,
+        scheduledAt: existingItem?.scheduledAt,
       };
       saveHistoryItem(historyItem);
     }
@@ -127,29 +109,34 @@ export default function HomePage() {
 
   const handlePostScheduled = (scheduledItem: PoemHistoryItem) => {
     saveHistoryItem(scheduledItem);
+    setIsScheduleModalOpen(false); // Close modal on successful schedule
+  };
+  
+  const openScheduleModal = () => {
+    setIsScheduleModalOpen(true);
   };
 
-  const handleHeroUploadClick = () => {
-    photoUploadSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   return (
     <div className="space-y-12 md:space-y-16">
-      <HeroSection onUploadClick={handleHeroUploadClick} />
-
-      <section ref={photoUploadSectionRef} id="upload-section" className="scroll-mt-20">
-        <h2 className="text-3xl font-headline text-primary mb-2 text-center">1. Upload Your Inspiration</h2>
-        <p className="text-lg text-foreground/80 text-center mb-8 max-w-2xl mx-auto">
-          Choose an image that speaks to you. Our AI will use it as a muse.
-        </p>
-        <PhotoUploadForm
-          currentPhotoDataUri={photoDataUri}
-          currentPhotoFileName={photoFileName}
-          onPhotoChanged={handlePhotoChanged}
-          onPoemGenerated={handlePoemGenerated}
-          isGenerating={isGeneratingPoem}
-          setIsGenerating={setIsGeneratingPoem}
-        />
+      <section className="text-center py-12 md:py-20">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl sm:text-5xl md:text-5xl font-headline font-bold mb-4 text-primary dark:text-primary-foreground">
+            Transform Your Image into Poetry
+          </h1>
+          <p className="text-lg md:text-xl text-foreground/80 dark:text-foreground/70 mb-8 max-w-xl mx-auto">
+            Upload. Inspire. Translate. Share.
+          </p>
+          
+          <PhotoUploadForm
+            currentPhotoDataUri={photoDataUri}
+            currentPhotoFileName={photoFileName}
+            onPhotoChanged={handlePhotoChanged}
+            onPoemGenerated={handlePoemGenerated}
+            isGenerating={isGeneratingPoem}
+            setIsGenerating={setIsGeneratingPoem}
+          />
+        </div>
       </section>
 
       {isGeneratingPoem && (
@@ -161,39 +148,32 @@ export default function HomePage() {
       )}
 
       {photoDataUri && generatedPoem !== null && !isGeneratingPoem && (
-        <section className="animate-fade-in">
-           <Separator className="my-8 bg-primary/30 h-0.5" />
-           <h2 className="text-3xl font-headline text-primary mb-2 text-center">2. Review & Refine Your Poem</h2>
-           <p className="text-lg text-foreground/80 text-center mb-8 max-w-2xl mx-auto">
-             Here's what our AI created. Feel free to edit, translate, or schedule it.
-           </p>
+        <section ref={poemSectionRef} className="animate-fade-in scroll-mt-20">
           <PoemDisplayEditor
             photoDataUri={photoDataUri}
             photoFileName={photoFileName}
             poem={generatedPoem}
             editedPoem={editedPoem}
             onPoemChange={setEditedPoem}
+            onSchedulePost={openScheduleModal}
           />
         </section>
       )}
 
-      {photoDataUri && editedPoem && !isGeneratingPoem && (
-         <section className="animate-fade-in">
-          <Separator className="my-8 bg-primary/30 h-0.5" />
-          <h2 className="text-3xl font-headline text-primary mb-2 text-center">3. Schedule Your Post</h2>
-           <p className="text-lg text-foreground/80 text-center mb-8 max-w-2xl mx-auto">
-             Get ready to share your creation with the world.
-           </p>
-          <SchedulerForm
+      {photoDataUri && editedPoem && !isGeneratingPoem && currentPoemId && (
+         <SchedulerFormWrapper
+            isOpen={isScheduleModalOpen}
+            setIsOpen={setIsScheduleModalOpen}
             currentPoem={editedPoem}
             currentPhotoDataUri={photoDataUri}
             currentPhotoFileName={photoFileName}
             onPostScheduled={handlePostScheduled}
             currentPoemId={currentPoemId}
             currentPoemCreatedAt={currentPoemCreatedAt}
+            initialCaption={editedPoem}
           />
-        </section>
       )}
     </div>
   );
 }
+```

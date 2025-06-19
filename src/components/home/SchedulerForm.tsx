@@ -6,9 +6,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CalendarClock, Hash, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -22,6 +22,7 @@ interface SchedulerFormProps {
   onPostScheduled: (scheduledItem: PoemHistoryItem) => void;
   currentPoemId: string | null;
   currentPoemCreatedAt: string | null;
+  initialCaption: string;
 }
 
 export default function SchedulerForm({ 
@@ -30,24 +31,28 @@ export default function SchedulerForm({
   currentPhotoFileName, 
   onPostScheduled,
   currentPoemId,
-  currentPoemCreatedAt
+  currentPoemCreatedAt,
+  initialCaption
 }: SchedulerFormProps) {
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [scheduledTime, setScheduledTime] = useState<string>('');
+  const [caption, setCaption] = useState<string>(initialCaption);
   const [hashtags, setHashtags] = useState<string>('');
   const [isScheduling, setIsScheduling] = useState(false);
   const [isScheduledSuccess, setIsScheduledSuccess] = useState(false);
   const { toast } = useToast();
 
-  const [clientLoaded, setClientLoaded] = useState(false);
   useEffect(() => {
-    setClientLoaded(true);
     const now = new Date();
-    now.setHours(now.getHours() + 1);
+    now.setHours(now.getHours() + 1); // Default to one hour from now
     now.setMinutes(0); 
     setScheduledTime(format(now, 'HH:mm'));
     setScheduledDate(now);
   }, []);
+
+  useEffect(() => {
+    setCaption(initialCaption); // Update caption if initialCaption (poem) changes
+  }, [initialCaption]);
 
   const handleSchedulePost = async () => {
     if (!currentPhotoDataUri || !currentPoem) {
@@ -66,6 +71,15 @@ export default function SchedulerForm({
       });
       return;
     }
+     if (!caption.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Caption Required",
+        description: "Please enter a caption for your post.",
+      });
+      return;
+    }
+
 
     setIsScheduling(true);
     setIsScheduledSuccess(false);
@@ -89,11 +103,13 @@ export default function SchedulerForm({
       photoDataUri: currentPhotoDataUri,
       photoFileName: currentPhotoFileName ?? 'uploaded-photo.jpg',
       poem: currentPoem,
+      caption: caption,
       hashtags: hashtags.split(',').map(h => h.trim()).filter(h => h),
       createdAt: currentPoemCreatedAt || new Date().toISOString(),
       scheduledAt: finalScheduledDateTime.toISOString(),
     };
 
+    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     onPostScheduled(newHistoryItem);
@@ -103,51 +119,42 @@ export default function SchedulerForm({
     });
     
     setIsScheduledSuccess(true);
-    setTimeout(() => setIsScheduledSuccess(false), 3000); // Reset success state after 3s
+    setTimeout(() => setIsScheduledSuccess(false), 3000); // Reset success state
 
-    // Reset some fields for next use, but keep date/time sensible
-    const nextScheduleDate = new Date();
-    nextScheduleDate.setDate(nextScheduleDate.getDate() + 1); // Default to tomorrow
-    nextScheduleDate.setHours(parseInt(scheduledTime.split(':')[0]), parseInt(scheduledTime.split(':')[1]));
-    
-    setScheduledDate(nextScheduleDate);
-    // setScheduledTime(''); // Or keep the time
-    setHashtags('');
+    // Don't reset date/time, allow for quick rescheduling or multiple posts
+    // setHashtags(''); // Optionally clear hashtags
     
     setIsScheduling(false);
   };
-
-  if (!clientLoaded) {
-    return (
-      <Card id="scheduling-form" className="w-full max-w-2xl mx-auto shadow-xl scroll-mt-20">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Schedule Your Post</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-        </CardContent>
-      </Card>
-    );
-  }
-
+  
   return (
-    <Card id="scheduling-form" className="w-full max-w-2xl mx-auto shadow-xl scroll-mt-20">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Schedule Your Post</CardTitle>
-        <CardDescription>Set the date, time, and hashtags for your Instagram post.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
+    <div className="space-y-6 p-1"> {/* Reduced padding for modal content */}
+        <div className="space-y-2">
+            <Label htmlFor="caption" className="font-headline flex items-center gap-2 text-sm">
+                Instagram Caption
+            </Label>
+            <Textarea
+                id="caption"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Your Instagram caption here..."
+                rows={4}
+                className="text-sm min-h-[100px]"
+                aria-label="Instagram caption for your post"
+            />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="schedule-date" className="font-headline flex items-center gap-2">
-              <CalendarClock className="w-5 h-5 text-primary" /> Schedule Date
+            <Label htmlFor="schedule-date" className="font-headline flex items-center gap-2 text-sm">
+              <CalendarClock className="w-4 h-4 text-primary" /> Schedule Date
             </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "w-full justify-start text-left font-normal h-12 text-base",
+                    "w-full justify-start text-left font-normal h-10 text-sm",
                     !scheduledDate && "text-muted-foreground"
                   )}
                   aria-label="Pick a date to schedule your post"
@@ -156,7 +163,7 @@ export default function SchedulerForm({
                   {scheduledDate ? format(scheduledDate, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-card" align="start">
+              <PopoverContent className="w-auto p-0 bg-card shadow-lg rounded-md" align="start">
                 <Calendar
                   mode="single"
                   selected={scheduledDate}
@@ -169,54 +176,51 @@ export default function SchedulerForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="schedule-time" className="font-headline flex items-center gap-2">
-              <CalendarClock className="w-5 h-5 text-primary" /> Schedule Time
+            <Label htmlFor="schedule-time" className="font-headline flex items-center gap-2 text-sm">
+              <CalendarClock className="w-4 h-4 text-primary" /> Schedule Time
             </Label>
             <Input
               id="schedule-time"
               type="time"
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
-              className="h-12 text-base"
+              className="h-10 text-sm"
               aria-label="Pick a time to schedule your post"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="hashtags" className="font-headline flex items-center gap-2">
-            <Hash className="w-5 h-5 text-primary" /> Hashtags
+          <Label htmlFor="hashtags" className="font-headline flex items-center gap-2 text-sm">
+            <Hash className="w-4 h-4 text-primary" /> Hashtags
           </Label>
           <Input
             id="hashtags"
             type="text"
             value={hashtags}
             onChange={(e) => setHashtags(e.target.value)}
-            placeholder="e.g., #poetry, #art, #instapoem (comma separated)"
-            className="h-12 text-base"
+            placeholder="e.g., #poetry, #art (comma separated)"
+            className="h-10 text-sm"
             aria-label="Enter hashtags for your post, separated by commas"
           />
         </div>
-        <p className="text-sm text-muted-foreground">
-          Note: Instagram post preview is a feature planned for future updates.
-        </p>
-
+        
         <Button
           onClick={handleSchedulePost}
           disabled={!currentPoem || !currentPhotoDataUri || isScheduling}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-base py-6 font-headline"
-          aria-label="Schedule this post"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-base py-3 font-headline rounded-md"
+          aria-label="Confirm and schedule this post"
         >
           {isScheduling ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           ) : isScheduledSuccess ? (
-            <CheckCircle2 className="mr-2 h-5 w-5 text-green-400" />
+            <CheckCircle2 className="mr-2 h-5 w-5 text-green-300" />
           ) : (
             <Send className="mr-2 h-5 w-5" />
           )}
-          {isScheduling ? 'Scheduling...' : isScheduledSuccess ? 'Scheduled Successfully!' : 'Schedule Post'}
+          {isScheduling ? 'Scheduling...' : isScheduledSuccess ? 'Scheduled Successfully!' : 'Confirm Schedule'}
         </Button>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
+```

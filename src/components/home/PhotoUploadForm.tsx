@@ -7,8 +7,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { UploadCloud, Sparkles, Loader2, FileImage, Image as ImageIcon } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { UploadCloud, Sparkles, Loader2, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generatePoemFromPhoto } from '@/ai/flows/generate-poem-from-photo';
 
@@ -115,20 +115,18 @@ export default function PhotoUploadForm({
     }
   };
   
-  // Effect to clear file input if currentPhotoDataUri is cleared from HomePage
   useEffect(() => {
     if (!currentPhotoDataUri && fileInputRef.current) {
         fileInputRef.current.value = "";
     }
   }, [currentPhotoDataUri]);
 
-
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-xl overflow-hidden">
-      <CardContent className="p-0">
+    <Card className="w-full max-w-lg mx-auto shadow-xl bg-card/70 backdrop-blur-sm border-primary/30">
+      <CardContent className="p-6 space-y-6">
         <div 
-          className={`p-6 border-2 border-dashed rounded-lg transition-colors
-            ${dragActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/70"}
+          className={`p-8 border-2 border-dashed rounded-lg transition-all
+            ${dragActive ? "border-primary bg-primary/10 scale-105" : "border-border hover:border-primary/70"}
             ${currentPhotoDataUri ? "border-solid border-primary" : ""}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -147,10 +145,10 @@ export default function PhotoUploadForm({
           />
           <Label 
             htmlFor="photo-upload-dnd" 
-            className="flex flex-col items-center justify-center space-y-3 cursor-pointer h-48"
+            className="flex flex-col items-center justify-center space-y-3 cursor-pointer h-40"
           >
             {currentPhotoDataUri ? (
-              <div className="relative w-full h-full max-h-48 overflow-hidden rounded-md">
+              <div className="relative w-full h-full max-h-40 overflow-hidden rounded-md">
                 <Image
                   src={currentPhotoDataUri}
                   alt={currentPhotoFileName || "Uploaded photo preview"}
@@ -162,38 +160,39 @@ export default function PhotoUploadForm({
               </div>
             ) : (
               <>
-                <ImageIcon className={`w-16 h-16 ${dragActive ? "text-primary" : "text-muted-foreground"}`} />
-                <p className={`text-center font-headline ${dragActive ? "text-primary" : "text-foreground"}`}>
-                  Drag image here or <span className="text-accent font-semibold">click to browse</span>.
+                <UploadCloud className={`w-12 h-12 ${dragActive ? "text-primary" : "text-muted-foreground"}`} />
+                <p className={`text-center font-semibold ${dragActive ? "text-primary" : "text-foreground"}`}>
+                  Drag image here
                 </p>
-                <p id="photo-upload-description" className="text-sm text-muted-foreground">Max 10MB. JPG, PNG, WEBP, GIF.</p>
+                <p id="photo-upload-description" className="text-sm text-muted-foreground">
+                  or <span className="text-accent font-medium hover:underline">click to browse</span>
+                </p>
               </>
             )}
           </Label>
         </div>
         
         {currentPhotoDataUri && currentPhotoFileName && (
-            <div className="p-4 bg-muted/30 text-sm text-muted-foreground text-center truncate">
+            <div className="text-sm text-muted-foreground text-center truncate">
                 Selected: <span className="font-medium text-foreground">{currentPhotoFileName}</span>
             </div>
         )}
 
-        <div className="p-6 border-t border-border">
-          <Button
-            onClick={handleGeneratePoem}
-            disabled={!currentPhotoDataUri || isGenerating}
-            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-base py-6 font-headline"
-            aria-label="Generate poem from uploaded photo"
-          >
-            {isGenerating ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Sparkles className="mr-2 h-5 w-5" />
-            )}
-            {isGenerating ? 'Generating Your Masterpiece...' : 'Generate Poem'}
-          </Button>
-        </div>
+        <Button
+          onClick={handleGeneratePoem}
+          disabled={!currentPhotoDataUri || isGenerating}
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-3 font-headline rounded-md"
+          aria-label="Generate poem from uploaded photo"
+        >
+          {isGenerating ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Sparkles className="mr-2 h-5 w-5" />
+          )}
+          {isGenerating ? 'Generating...' : 'Generate Poem'}
+        </Button>
       </CardContent>
     </Card>
   );
 }
+```
