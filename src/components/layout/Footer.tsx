@@ -10,7 +10,7 @@ export default function Footer() {
           {/* Add Twitter/Instagram testimonials here if desired */}
         </div>
         <div className="flex justify-center gap-4 mb-4">
-          <Link href="/faq" className="text-sm hover:text-primary transition-colors">FAQ</Link>
+          <Link href="/about-us" className="text-sm hover:text-primary transition-colors">About Us</Link>
           <Link href="/privacy" className="text-sm hover:text-primary transition-colors">Privacy Policy</Link>
           <Link href="/contact" className="text-sm hover:text-primary transition-colors">Contact</Link>
         </div>
