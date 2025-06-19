@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { PoemHistoryItem } from '@/lib/types';
-import { CalendarDays, Clock, Hash, Edit2, Trash2, Eye } from 'lucide-react'; // Changed Edit to Edit2 or Eye
+import { CalendarDays, Clock, Hash, Edit2, Trash2, FileImage } from 'lucide-react'; 
 import { format } from 'date-fns';
 
 interface HistoryItemCardProps {
@@ -21,14 +21,23 @@ export default function HistoryItemCard({ item, onDelete }: HistoryItemCardProps
     <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card/80 backdrop-blur-sm border-border/50">
       <CardHeader className="p-4">
         <div className="relative aspect-video w-full overflow-hidden rounded-md">
-          <Image 
-            src={item.photoDataUri} 
-            alt={item.photoFileName || "Historic photo"} 
-            fill={true}
-            style={{objectFit: 'cover'}}
-            className="rounded-md"
-            data-ai-hint="historic photo"
-          />
+          {item.photoDataUri ? (
+            <Image 
+              src={item.photoDataUri} 
+              alt={item.photoFileName || "Historic photo"} 
+              fill={true}
+              style={{objectFit: 'cover'}}
+              className="rounded-md"
+              data-ai-hint="historic photo"
+            />
+          ) : (
+            <div 
+              className="absolute inset-0 flex items-center justify-center bg-muted rounded-md"
+              data-ai-hint="placeholder image"
+            >
+              <FileImage className="w-12 h-12 text-muted-foreground" />
+            </div>
+          )}
         </div>
         <CardTitle className="mt-3 font-headline text-lg truncate text-primary" title={item.photoFileName || "Poem"}>
           {item.photoFileName || "Untitled Poem"}
@@ -38,10 +47,10 @@ export default function HistoryItemCard({ item, onDelete }: HistoryItemCardProps
             <CalendarDays className="w-3 h-3 mr-1.5 flex-shrink-0" />
             Created: {format(new Date(item.createdAt), "MMM d, yyyy")}
             </CardDescription>
-            {isScheduled && (
+            {isScheduled && item.scheduledAt && ( // Ensure item.scheduledAt is checked
             <CardDescription className="flex items-center text-xs text-accent font-medium">
                 <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                Scheduled: {format(new Date(item.scheduledAt!), "MMM d, yyyy 'at' p")}
+                Scheduled: {format(new Date(item.scheduledAt), "MMM d, yyyy 'at' p")}
             </CardDescription>
             )}
         </div>
@@ -51,7 +60,7 @@ export default function HistoryItemCard({ item, onDelete }: HistoryItemCardProps
         {item.hashtags && item.hashtags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1 items-center text-xs">
             <Hash className="w-3 h-3 text-primary" />
-            {item.hashtags.slice(0, 3).map((tag, index) => ( // Show limited tags
+            {item.hashtags.slice(0, 3).map((tag, index) => ( 
               <span key={index} className="px-1.5 py-0.5 bg-secondary/70 text-secondary-foreground rounded-full text-[10px]">
                 {tag}
               </span>
