@@ -132,13 +132,7 @@ export default function PhotoUploadForm({
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          onClick={(e) => {
-            // Only trigger file input click if the click is directly on this div
-            // and not on its children (like the Label, which handles its own click via htmlFor).
-            if (e.target === e.currentTarget && fileInputRef.current) {
-              fileInputRef.current.click();
-            }
-          }}
+          // Removed onClick handler from this div
         >
           <Input
             id="photo-upload-dnd"
