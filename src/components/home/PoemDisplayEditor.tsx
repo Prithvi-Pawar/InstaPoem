@@ -57,6 +57,8 @@ export default function PoemDisplayEditor({
     { value: 'Korean', label: 'Korean' },
   ];
 
+  const { toast } = useToast();
+
   useEffect(() => {
     // Reset translation state if the base poem or photo changes
     setSelectedLanguage('');
@@ -253,4 +255,3 @@ export default function PoemDisplayEditor({
     </Card>
   );
 }
-```
