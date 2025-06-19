@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CalendarClock, Hash, Send, Loader2 } from 'lucide-react';
+import { CalendarClock, Hash, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -33,22 +33,21 @@ export default function SchedulerForm({
   currentPoemCreatedAt
 }: SchedulerFormProps) {
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [scheduledTime, setScheduledTime] = useState<string>(''); // HH:mm format
+  const [scheduledTime, setScheduledTime] = useState<string>('');
   const [hashtags, setHashtags] = useState<string>('');
   const [isScheduling, setIsScheduling] = useState(false);
+  const [isScheduledSuccess, setIsScheduledSuccess] = useState(false);
   const { toast } = useToast();
 
   const [clientLoaded, setClientLoaded] = useState(false);
   useEffect(() => {
     setClientLoaded(true);
-    // Set default time to current time + 1 hour
     const now = new Date();
     now.setHours(now.getHours() + 1);
-    now.setMinutes(0); // Round to the hour
+    now.setMinutes(0); 
     setScheduledTime(format(now, 'HH:mm'));
     setScheduledDate(now);
   }, []);
-
 
   const handleSchedulePost = async () => {
     if (!currentPhotoDataUri || !currentPoem) {
@@ -69,6 +68,7 @@ export default function SchedulerForm({
     }
 
     setIsScheduling(true);
+    setIsScheduledSuccess(false);
 
     const [hours, minutes] = scheduledTime.split(':').map(Number);
     const finalScheduledDateTime = new Date(scheduledDate);
@@ -85,16 +85,15 @@ export default function SchedulerForm({
     }
 
     const newHistoryItem: PoemHistoryItem = {
-      id: currentPoemId || crypto.randomUUID(), // Use existing ID if available
+      id: currentPoemId || crypto.randomUUID(),
       photoDataUri: currentPhotoDataUri,
       photoFileName: currentPhotoFileName ?? 'uploaded-photo.jpg',
       poem: currentPoem,
       hashtags: hashtags.split(',').map(h => h.trim()).filter(h => h),
-      createdAt: currentPoemCreatedAt || new Date().toISOString(), // Use existing createdAt if available
+      createdAt: currentPoemCreatedAt || new Date().toISOString(),
       scheduledAt: finalScheduledDateTime.toISOString(),
     };
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     onPostScheduled(newHistoryItem);
@@ -103,9 +102,16 @@ export default function SchedulerForm({
       description: `Your poem will be "posted" on ${format(finalScheduledDateTime, "PPP p")}.`,
     });
     
-    // Reset form fields, but not the core poem ID/createdAt from props
-    setScheduledDate(undefined);
-    setScheduledTime('');
+    setIsScheduledSuccess(true);
+    setTimeout(() => setIsScheduledSuccess(false), 3000); // Reset success state after 3s
+
+    // Reset some fields for next use, but keep date/time sensible
+    const nextScheduleDate = new Date();
+    nextScheduleDate.setDate(nextScheduleDate.getDate() + 1); // Default to tomorrow
+    nextScheduleDate.setHours(parseInt(scheduledTime.split(':')[0]), parseInt(scheduledTime.split(':')[1]));
+    
+    setScheduledDate(nextScheduleDate);
+    // setScheduledTime(''); // Or keep the time
     setHashtags('');
     
     setIsScheduling(false);
@@ -113,7 +119,7 @@ export default function SchedulerForm({
 
   if (!clientLoaded) {
     return (
-      <Card className="w-full shadow-lg mt-8">
+      <Card id="scheduling-form" className="w-full max-w-2xl mx-auto shadow-xl scroll-mt-20">
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Schedule Your Post</CardTitle>
         </CardHeader>
@@ -125,7 +131,7 @@ export default function SchedulerForm({
   }
 
   return (
-    <Card className="w-full shadow-lg mt-8 animate-fade-in">
+    <Card id="scheduling-form" className="w-full max-w-2xl mx-auto shadow-xl scroll-mt-20">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Schedule Your Post</CardTitle>
         <CardDescription>Set the date, time, and hashtags for your Instagram post.</CardDescription>
@@ -156,7 +162,7 @@ export default function SchedulerForm({
                   selected={scheduledDate}
                   onSelect={setScheduledDate}
                   initialFocus
-                  disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) } // Disable past dates
+                  disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) }
                 />
               </PopoverContent>
             </Popover>
@@ -191,6 +197,9 @@ export default function SchedulerForm({
             aria-label="Enter hashtags for your post, separated by commas"
           />
         </div>
+        <p className="text-sm text-muted-foreground">
+          Note: Instagram post preview is a feature planned for future updates.
+        </p>
 
         <Button
           onClick={handleSchedulePost}
@@ -200,10 +209,12 @@ export default function SchedulerForm({
         >
           {isScheduling ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : isScheduledSuccess ? (
+            <CheckCircle2 className="mr-2 h-5 w-5 text-green-400" />
           ) : (
             <Send className="mr-2 h-5 w-5" />
           )}
-          {isScheduling ? 'Scheduling...' : 'Schedule Post'}
+          {isScheduling ? 'Scheduling...' : isScheduledSuccess ? 'Scheduled Successfully!' : 'Schedule Post'}
         </Button>
       </CardContent>
     </Card>

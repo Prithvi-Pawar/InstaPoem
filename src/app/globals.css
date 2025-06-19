@@ -51,10 +51,13 @@ body {
     --sidebar-accent-foreground: 51 100% 10%;
     --sidebar-border: 283 20% 80%;
     --sidebar-ring: 283 100% 41%;
+
+    /* For Hero Gradient */
+    --background-hero-start: 240 67% 94%; /* Light Lavender (same as --background) */
+    --background-hero-end: 240 60% 90%; /* Slightly darker/more saturated Lavender for gradient end */
   }
 
   .dark {
-    /* Keeping dark theme variables, though app is primarily light themed based on proposal */
     --background: 283 10% 10%;
     --foreground: 240 60% 90%;
 
@@ -91,6 +94,10 @@ body {
     --sidebar-accent-foreground: 51 100% 10%;
     --sidebar-border: 283 10% 30%;
     --sidebar-ring: 283 100% 61%;
+    
+    /* For Hero Gradient in Dark Mode */
+    --background-hero-start: 283 10% 10%; /* Dark (same as --background dark) */
+    --background-hero-end: 283 12% 15%; /* Slightly different dark shade for gradient end */
   }
 }
 
@@ -104,4 +111,12 @@ body {
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
+}
+
+/* Custom Instagram-like gradient (simplified) */
+.instagram-gradient {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

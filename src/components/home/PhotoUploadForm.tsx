@@ -2,13 +2,13 @@
 'use client';
 
 import type React from 'react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { UploadCloud, Sparkles, Loader2 } from 'lucide-react';
+import { UploadCloud, Sparkles, Loader2, FileImage, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generatePoemFromPhoto } from '@/ai/flows/generate-poem-from-photo';
 
@@ -23,17 +23,17 @@ interface PhotoUploadFormProps {
 
 export default function PhotoUploadForm({ 
   currentPhotoDataUri,
+  currentPhotoFileName,
   onPhotoChanged, 
   onPoemGenerated, 
   isGenerating, 
   setIsGenerating 
 }: PhotoUploadFormProps) {
-  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const processFile = useCallback((file: File | null) => {
     if (file) {
       if (file.size > 10 * 1024 * 1024) { // Max 10MB
         toast({
@@ -41,9 +41,8 @@ export default function PhotoUploadForm({
           title: "File too large",
           description: "Please upload an image smaller than 10MB.",
         });
-        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
-        onPhotoChanged(null, null); // Notify HomePage to clear state
-        setPhotoPreviewUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        onPhotoChanged(null, null);
         return;
       }
       if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
@@ -52,26 +51,45 @@ export default function PhotoUploadForm({
           title: "Invalid file type",
           description: "Please upload a JPG, PNG, WEBP, or GIF image.",
         });
-        if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
-        onPhotoChanged(null, null); // Notify HomePage to clear state
-        setPhotoPreviewUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        onPhotoChanged(null, null);
         return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUri = reader.result as string;
-        setPhotoPreviewUrl(URL.createObjectURL(file)); // Keep preview URL logic
         onPhotoChanged(dataUri, file.name);
       };
       reader.readAsDataURL(file);
     } else {
-      // No file selected or selection was cancelled
       onPhotoChanged(null, null);
-      setPhotoPreviewUrl(null);
     }
+  }, [onPhotoChanged, toast]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    processFile(event.target.files?.[0] || null);
   };
 
+  const handleDrag = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === "dragenter" || event.type === "dragover") {
+      setDragActive(true);
+    } else if (event.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+    if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+      processFile(event.dataTransfer.files[0]);
+    }
+  }, [processFile]);
+  
   const handleGeneratePoem = async () => {
     if (!currentPhotoDataUri) {
       toast({
@@ -97,83 +115,84 @@ export default function PhotoUploadForm({
     }
   };
   
-  // Effect to update preview if currentPhotoDataUri changes from HomePage (e.g., from history)
-  // or if it's cleared by HomePage.
-  useState(() => {
-    if (currentPhotoDataUri) {
-        // Only attempt to create object URL if it's a new upload not yet previewed or from history
-        // This check avoids issues if currentPhotoDataUri is already a data URI.
-        // For simplicity, we assume if photoPreviewUrl is not set, we might need to set it.
-        // This might need more robust handling if direct data URI display is preferred over ObjectURL for preview.
-        if (currentPhotoDataUri.startsWith('data:image')) {
-             // If it's a data URI, we can use it directly for preview,
-             // or create an Object URL if preferred (currently done in handleFileChange)
-             // For consistency with handleFileChange, let's assume if it's a data URI, a preview might have been set.
-             // If not, this could be a point of enhancement.
-             // For now, if currentPhotoDataUri is set (e.g. from history), and photoPreviewUrl is not,
-             // it means we might want to show it.
-             // However, PhotoUploadForm should primarily show preview for *new* uploads.
-             // History items are handled by PoemDisplayEditor.
-             // So, if currentPhotoDataUri is null, clear preview.
-        }
-    } else {
-        setPhotoPreviewUrl(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+  // Effect to clear file input if currentPhotoDataUri is cleared from HomePage
+  useEffect(() => {
+    if (!currentPhotoDataUri && fileInputRef.current) {
+        fileInputRef.current.value = "";
     }
   }, [currentPhotoDataUri]);
 
 
   return (
-    <Card className="w-full shadow-lg">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Upload Your Photo</CardTitle>
-        <CardDescription>Select an image and let our AI craft a unique poem for you.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="photo-upload" className="font-headline">Choose Photo</Label>
+    <Card className="w-full max-w-2xl mx-auto shadow-xl overflow-hidden">
+      <CardContent className="p-0">
+        <div 
+          className={`p-6 border-2 border-dashed rounded-lg transition-colors
+            ${dragActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/70"}
+            ${currentPhotoDataUri ? "border-solid border-primary" : ""}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
           <Input
-            id="photo-upload"
+            id="photo-upload-dnd"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
             onChange={handleFileChange}
             ref={fileInputRef}
-            className="file:font-headline file:text-primary-foreground file:bg-primary file:hover:bg-primary/90 file:rounded-md file:px-3 file:py-1.5 file:mr-3"
+            className="hidden"
             aria-describedby="photo-upload-description"
           />
-          <p id="photo-upload-description" className="text-sm text-muted-foreground">Max 10MB. JPG, PNG, WEBP, GIF accepted.</p>
+          <Label 
+            htmlFor="photo-upload-dnd" 
+            className="flex flex-col items-center justify-center space-y-3 cursor-pointer h-48"
+          >
+            {currentPhotoDataUri ? (
+              <div className="relative w-full h-full max-h-48 overflow-hidden rounded-md">
+                <Image
+                  src={currentPhotoDataUri}
+                  alt={currentPhotoFileName || "Uploaded photo preview"}
+                  layout="fill"
+                  objectFit="contain"
+                  className="rounded-md"
+                  data-ai-hint="upload preview"
+                />
+              </div>
+            ) : (
+              <>
+                <ImageIcon className={`w-16 h-16 ${dragActive ? "text-primary" : "text-muted-foreground"}`} />
+                <p className={`text-center font-headline ${dragActive ? "text-primary" : "text-foreground"}`}>
+                  Drag image here or <span className="text-accent font-semibold">click to browse</span>.
+                </p>
+                <p id="photo-upload-description" className="text-sm text-muted-foreground">Max 10MB. JPG, PNG, WEBP, GIF.</p>
+              </>
+            )}
+          </Label>
         </div>
-
-        {photoPreviewUrl && (
-          <div className="mt-4 border border-border rounded-lg p-2 bg-background/50 animate-fade-in">
-            <p className="text-sm font-medium text-center mb-2 font-headline">Photo Preview:</p>
-            <div className="relative aspect-video w-full max-w-md mx-auto overflow-hidden rounded-md">
-              <Image
-                src={photoPreviewUrl}
-                alt="Uploaded photo preview"
-                layout="fill"
-                objectFit="contain"
-                data-ai-hint="photo preview"
-              />
+        
+        {currentPhotoDataUri && currentPhotoFileName && (
+            <div className="p-4 bg-muted/30 text-sm text-muted-foreground text-center truncate">
+                Selected: <span className="font-medium text-foreground">{currentPhotoFileName}</span>
             </div>
-          </div>
         )}
 
-        <Button
-          onClick={handleGeneratePoem}
-          disabled={!currentPhotoDataUri || isGenerating}
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-base py-6 font-headline"
-          aria-label="Generate poem from uploaded photo"
-        >
-          {isGenerating ? (
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          ) : (
-            <Sparkles className="mr-2 h-5 w-5" />
-          )}
-          {isGenerating ? 'Generating Your Masterpiece...' : 'Generate Poem'}
-        </Button>
+        <div className="p-6 border-t border-border">
+          <Button
+            onClick={handleGeneratePoem}
+            disabled={!currentPhotoDataUri || isGenerating}
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-base py-6 font-headline"
+            aria-label="Generate poem from uploaded photo"
+          >
+            {isGenerating ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <Sparkles className="mr-2 h-5 w-5" />
+            )}
+            {isGenerating ? 'Generating Your Masterpiece...' : 'Generate Poem'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
