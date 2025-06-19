@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
+  SheetHeader, // Added import
+  SheetTitle,  // Added import
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from 'react';
@@ -90,13 +92,15 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0 pt-8 bg-card flex flex-col">
-                <div className="p-4 border-b border-border/50">
-                    <Link href="/" className="flex items-center gap-2 text-xl font-headline text-primary" onClick={() => setIsMobileMenuOpen(false)}>
-                        <PenLine className="w-6 h-6" />
-                        <span>InstaPoem</span>
-                    </Link>
-                </div>
+            <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col"> {/* Removed pt-8 */}
+                <SheetHeader className="p-4 border-b border-border/50">
+                    <SheetTitle>
+                        <Link href="/" className="flex items-center gap-2 text-xl font-headline text-primary" onClick={() => setIsMobileMenuOpen(false)}>
+                            <PenLine className="w-6 h-6" />
+                            <span>InstaPoem</span>
+                        </Link>
+                    </SheetTitle>
+                </SheetHeader>
               <nav className="flex flex-col gap-1 p-4 flex-grow">
                 {navItems.map(item => (
                   <NavLinkItem
