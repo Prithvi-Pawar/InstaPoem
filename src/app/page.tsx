@@ -117,7 +117,7 @@ export default function HomePage() {
       };
       saveHistoryItem(historyItem);
     }
-  }, [editedPoem, currentPoemId, currentPoemCreatedAt, photoDataUri, photoFileName, saveHistoryItem, getHistoryItem]);
+  }, [editedPoem, currentPoemId, currentPoemCreatedAt, photoDataUri, photoFileName, saveHistoryItem]);
 
 
   const handlePostScheduled = (scheduledItem: PoemHistoryItem) => {
