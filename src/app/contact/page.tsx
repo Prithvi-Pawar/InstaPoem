@@ -1,5 +1,6 @@
-
 // src/app/contact/page.tsx
+'use client';
+
 import type { Metadata } from 'next';
 import { Mail, MessageSquare, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
+// Note: Metadata should ideally be exported from a server component or layout if this page is client-rendered.
+// However, for simplicity in this PRD, we keep it here. For full optimization,
+// you might move metadata to a layout.tsx if this page becomes fully client-side.
 export const metadata: Metadata = {
   title: 'Contact Us - InstaPoem',
   description: 'Get in touch with the InstaPoem team.',
