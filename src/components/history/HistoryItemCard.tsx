@@ -24,8 +24,8 @@ export default function HistoryItemCard({ item, onDelete }: HistoryItemCardProps
           <Image 
             src={item.photoDataUri} 
             alt={item.photoFileName || "Historic photo"} 
-            layout="fill" 
-            objectFit="cover"
+            fill={true}
+            style={{objectFit: 'cover'}}
             className="rounded-md"
             data-ai-hint="historic photo"
           />
@@ -86,4 +86,3 @@ export default function HistoryItemCard({ item, onDelete }: HistoryItemCardProps
     </Card>
   );
 }
-```
