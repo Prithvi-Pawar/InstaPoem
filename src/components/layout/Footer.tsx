@@ -15,7 +15,7 @@ export default function Footer() {
           <Link href="/contact" className="text-sm hover:text-primary transition-colors">Contact</Link>
         </div>
         <p className="text-xs">
-          Powered by Firebase & AI Magic. &copy; {new Date().getFullYear()} InstaPoem.
+          Powered by Firebase & AI Magic. &copy; 2024 InstaPoem.
         </p>
       </div>
     </footer>
