@@ -17,7 +17,6 @@ import { translatePoem } from '@/ai/flows/translate-poem-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { toPng } from 'html-to-image';
 import { Switch } from '@/components/ui/switch';
 
@@ -48,14 +47,15 @@ const MinimalLayout = ({ quoteText, author, quoteCardRef }: { quoteText: string;
     </div>
 );
 
-const ArtisticLayout = ({ quoteText, author, imageSrc, quoteCardRef }: { quoteText: string; author: string; imageSrc: string; quoteCardRef: React.RefObject<HTMLDivElement> }) => (
+const ArtisticLayout = ({ quoteText, author, imageSrc, quoteCardRef, aspectRatio }: { quoteText: string; author: string; imageSrc: string; quoteCardRef: React.RefObject<HTMLDivElement>; aspectRatio: number | null }) => (
     <div 
         ref={quoteCardRef}
-        className="relative aspect-square w-full overflow-hidden rounded-lg shadow-inner"
+        className="relative w-full overflow-hidden rounded-lg shadow-inner"
         style={{
             backgroundImage: `url(${imageSrc})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            aspectRatio: aspectRatio || '1 / 1',
         }}
     >
         {/* This div adds a semi-transparent dark overlay to ensure text is readable on any image */}
@@ -99,6 +99,7 @@ function QuoteGenerator() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
 
   const [artisticMode, setArtisticMode] = useState(false);
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
   
   const quoteCardRef = useRef<HTMLDivElement>(null);
   const poemId = useMemo(() => searchParams.get('fromHistory'), [searchParams]);
@@ -108,6 +109,15 @@ function QuoteGenerator() {
       const item = getHistoryItem(poemId);
       if (item) {
         setPoemItem(item);
+        if (item.photoDataUri) {
+          const img = new window.Image();
+          img.onload = () => {
+            if (img.width > 0 && img.height > 0) {
+              setImageAspectRatio(img.width / img.height);
+            }
+          };
+          img.src = item.photoDataUri;
+        }
       }
     }
   }, [poemId, isHistoryLoading, getHistoryItem]);
@@ -201,6 +211,8 @@ function QuoteGenerator() {
         </Alert>
     );
   }
+  
+  const rightPanelAspectRatio = (artisticMode && imageAspectRatio) ? imageAspectRatio : '1 / 1';
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -219,7 +231,7 @@ function QuoteGenerator() {
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+                <div style={{ aspectRatio: imageAspectRatio || '16 / 9' }} className="relative w-full overflow-hidden rounded-md border">
                     <Image src={poemItem.photoDataUri || 'https://placehold.co/600x400.png'} alt={poemItem.photoFileName || 'Poem inspiration'} layout="fill" objectFit="cover" className="rounded-md" />
                 </div>
                 <div className="space-y-4">
@@ -248,7 +260,7 @@ function QuoteGenerator() {
 
         <div className="space-y-6">
              {isGenerating ? (
-                <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square">
+                <div style={{ aspectRatio: rightPanelAspectRatio }} className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative">
                     <div className="text-center text-muted-foreground">
                         <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
                         <p className="mt-2 font-medium">Crafting your quote...</p>
@@ -261,6 +273,7 @@ function QuoteGenerator() {
                         author="InstaPoem" 
                         imageSrc={poemItem.photoDataUri!} 
                         quoteCardRef={quoteCardRef}
+                        aspectRatio={imageAspectRatio}
                     />
                 ) : (
                     <MinimalLayout 
@@ -270,7 +283,7 @@ function QuoteGenerator() {
                     />
                 )
             ) : (
-                 <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square">
+                 <div style={{ aspectRatio: rightPanelAspectRatio }} className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative">
                     <div className="text-center text-muted-foreground">
                         <p>Your quote will appear here.</p>
                     </div>
