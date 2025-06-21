@@ -34,18 +34,20 @@ const languageList = [
     { value: 'Marathi', label: 'Marathi' }, { value: 'Sanskrit', label: 'Sanskrit' },
 ];
 
-const alignmentClasses: Record<string, string> = {
-    start: 'justify-start',
-    center: 'justify-center',
-    end: 'justify-end',
-};
-
-const MinimalLayout = ({ text, author, quoteCardRef, alignment, fontSize }: { text: string; author: string, quoteCardRef: React.RefObject<HTMLDivElement>, alignment: string, fontSize: number }) => (
-    <div 
-        ref={quoteCardRef}
-        className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square"
-    >
-        <div className={cn("flex w-full flex-col text-center", alignmentClasses[alignment] || 'justify-center')}>
+const MinimalLayout = ({ text, author, fontSize, positionX, positionY, onMouseDown }: { text: string; author: string, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void }) => (
+    <div className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square">
+        <div 
+            onMouseDown={onMouseDown}
+            data-draggable="true"
+            className="absolute text-center"
+            style={{
+                left: `${positionX}%`,
+                top: `${positionY}%`,
+                transform: 'translate(-50%, -50%)',
+                width: '90%',
+                cursor: 'grab',
+            }}
+        >
             <p className="font-playfair italic leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
                 “{text}”
             </p>
@@ -56,9 +58,8 @@ const MinimalLayout = ({ text, author, quoteCardRef, alignment, fontSize }: { te
     </div>
 );
 
-const ArtisticLayout = ({ text, author, imageSrc, quoteCardRef, aspectRatio, alignment, fontSize }: { text: string; author: string; imageSrc: string; quoteCardRef: React.RefObject<HTMLDivElement>; aspectRatio: number | null, alignment: string, fontSize: number }) => (
+const ArtisticLayout = ({ text, author, imageSrc, aspectRatio, fontSize, positionX, positionY, onMouseDown }: { text: string; author: string; imageSrc: string; aspectRatio: number | null, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void }) => (
     <div 
-        ref={quoteCardRef}
         className="relative w-full overflow-hidden rounded-lg shadow-inner"
         style={{
             backgroundImage: `url(${imageSrc})`,
@@ -76,8 +77,17 @@ const ArtisticLayout = ({ text, author, imageSrc, quoteCardRef, aspectRatio, ali
             }}
         />
         <div 
-            className={cn("relative z-10 flex h-full w-full flex-col p-8 text-center text-white", alignmentClasses[alignment] || 'justify-center')}
-            style={{ textShadow: '1px 1px 6px rgba(0,0,0,0.6)' }}
+            onMouseDown={onMouseDown}
+            data-draggable="true"
+            className="absolute z-10 text-center text-white"
+            style={{ 
+                left: `${positionX}%`,
+                top: `${positionY}%`,
+                transform: 'translate(-50%, -50%)',
+                width: '90%',
+                textShadow: '1px 1px 6px rgba(0,0,0,0.6)',
+                cursor: 'grab'
+            }}
         >
             <div>
                 <p className="font-libre leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
@@ -105,7 +115,8 @@ function QuoteGenerator() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   
   const [editableQuoteText, setEditableQuoteText] = useState('');
-  const [textAlignment, setTextAlignment] = useState<'start' | 'center' | 'end'>('center');
+  const [positionX, setPositionX] = useState(50);
+  const [positionY, setPositionY] = useState(50);
   const [fontSize, setFontSize] = useState(32);
 
   const [artisticMode, setArtisticMode] = useState(false);
@@ -113,6 +124,9 @@ function QuoteGenerator() {
   
   const quoteCardRef = useRef<HTMLDivElement>(null);
   const poemId = useMemo(() => searchParams.get('fromHistory'), [searchParams]);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     if (poemId && !isHistoryLoading) {
@@ -194,7 +208,7 @@ function QuoteGenerator() {
         const result = await translatePoem({ poemText: editableQuoteText, targetLanguage: selectedLanguage });
         const updatedQuote = { ...currentQuote, translatedText: result.translatedPoem, translatedLanguage: selectedLanguage };
         setCurrentQuote(updatedQuote);
-        setEditableQuoteText(result.translatedPoem);
+        setEditableQuoteText(result.translatedPoem); // Automatically update preview
         if(poemItem) saveQuoteToHistory(poemItem.id, updatedQuote);
     } catch (error) {
          console.error("Error translating quote:", error);
@@ -203,6 +217,59 @@ function QuoteGenerator() {
         setIsTranslating(false);
     }
   };
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!quoteCardRef.current) return;
+        e.preventDefault();
+        setIsDragging(true);
+
+        const textElement = e.currentTarget;
+        const textRect = textElement.getBoundingClientRect();
+        
+        dragOffsetRef.current = {
+            x: e.clientX - textRect.left,
+            y: e.clientY - textRect.top,
+        };
+        
+        textElement.style.cursor = 'grabbing';
+        document.body.style.cursor = 'grabbing';
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isDragging || !quoteCardRef.current) return;
+        e.preventDefault();
+        const containerRect = quoteCardRef.current.getBoundingClientRect();
+
+        const relativeX = e.clientX - containerRect.left;
+        const relativeY = e.clientY - containerRect.top;
+        
+        const textElement = quoteCardRef.current.querySelector('[data-draggable="true"]');
+        if (!textElement) return;
+        const textRect = textElement.getBoundingClientRect();
+
+        const newCenterX = (relativeX - dragOffsetRef.current.x) + (textRect.width / 2);
+        const newCenterY = (relativeY - dragOffsetRef.current.y) + (textRect.height / 2);
+
+        let newPosX = (newCenterX / containerRect.width) * 100;
+        let newPosY = (newCenterY / containerRect.height) * 100;
+
+        newPosX = Math.max(0, Math.min(100, newPosX));
+        newPosY = Math.max(0, Math.min(100, newPosY));
+
+        setPositionX(newPosX);
+        setPositionY(newPosY);
+    };
+
+    const handleMouseUp = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
+        const textElement = quoteCardRef.current?.querySelector('[data-draggable="true"]');
+        if (textElement) {
+            (textElement as HTMLElement).style.cursor = 'grab';
+        }
+        document.body.style.cursor = 'default';
+    };
+
 
   if (isHistoryLoading) {
     return (
@@ -273,8 +340,16 @@ function QuoteGenerator() {
         </Card>
 
         <div className="space-y-6">
+             <div 
+                className="relative"
+                ref={quoteCardRef}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                style={{ aspectRatio: rightPanelAspectRatio }}
+             >
              {isGenerating ? (
-                <div style={{ aspectRatio: rightPanelAspectRatio }} className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative">
+                <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full h-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in">
                     <div className="text-center text-muted-foreground">
                         <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
                         <p className="mt-2 font-medium">Crafting your quote...</p>
@@ -286,28 +361,30 @@ function QuoteGenerator() {
                         text={editableQuoteText} 
                         author="InstaPoem" 
                         imageSrc={poemItem.photoDataUri!} 
-                        quoteCardRef={quoteCardRef}
                         aspectRatio={imageAspectRatio}
-                        alignment={textAlignment}
                         fontSize={fontSize}
+                        positionX={positionX}
+                        positionY={positionY}
+                        onMouseDown={handleMouseDown}
                     />
                 ) : (
                     <MinimalLayout 
                         text={editableQuoteText} 
                         author="InstaPoem" 
-                        quoteCardRef={quoteCardRef}
-                        alignment={textAlignment}
                         fontSize={fontSize}
+                        positionX={positionX}
+                        positionY={positionY}
+                        onMouseDown={handleMouseDown}
                     />
                 )
             ) : (
-                 <div style={{ aspectRatio: rightPanelAspectRatio }} className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative">
+                 <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full h-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in">
                     <div className="text-center text-muted-foreground">
                         <p>Your quote will appear here.</p>
                     </div>
                 </div>
             )}
-
+            </div>
 
             {currentQuote && (
                 <div className="space-y-4 animate-fade-in">
@@ -359,7 +436,7 @@ function QuoteGenerator() {
                                 <Edit2 className="w-5 h-5" /> Customize Appearance
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
                              <div className="space-y-2">
                                 <Label htmlFor="quote-editor">Quote Text</Label>
                                 <Textarea 
@@ -373,26 +450,32 @@ function QuoteGenerator() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Text Alignment</Label>
-                                <RadioGroup value={textAlignment} onValueChange={(val) => setTextAlignment(val as any)} className="flex gap-4 items-center">
-                                    <Label htmlFor="align-top" className="flex items-center gap-2 cursor-pointer">
-                                        <RadioGroupItem value="start" id="align-top" /> Top
-                                    </Label>
-                                    <Label htmlFor="align-middle" className="flex items-center gap-2 cursor-pointer">
-                                        <RadioGroupItem value="center" id="align-middle" /> Middle
-                                    </Label>
-                                    <Label htmlFor="align-bottom" className="flex items-center gap-2 cursor-pointer">
-                                        <RadioGroupItem value="end" id="align-bottom" /> Bottom
-                                    </Label>
-                                </RadioGroup>
+                                <Label>Horizontal Position ({Math.round(positionX)}%)</Label>
+                                <Slider 
+                                    min={0}
+                                    max={100}
+                                    step={1} 
+                                    value={[positionX]} 
+                                    onValueChange={(value) => setPositionX(value[0])}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Vertical Position ({Math.round(positionY)}%)</Label>
+                                <Slider 
+                                    min={0}
+                                    max={100}
+                                    step={1} 
+                                    value={[positionY]} 
+                                    onValueChange={(value) => setPositionY(value[0])}
+                                />
                             </div>
                             <div className="space-y-2 pt-2">
                                 <Label htmlFor="font-size-slider">Font Size ({fontSize}px)</Label>
                                 <Slider 
                                     id="font-size-slider"
-                                    min={artisticMode ? 24 : 20} 
-                                    max={artisticMode ? 64 : 48} 
-                                    step={2} 
+                                    min={0} 
+                                    max={100} 
+                                    step={1} 
                                     value={[fontSize]} 
                                     onValueChange={(value) => setFontSize(value[0])}
                                 />
@@ -407,13 +490,6 @@ function QuoteGenerator() {
   );
 }
 
-// Helper to apply cn utility to props
-const cn = (...inputs: any[]) => {
-    // A simplified version for this specific use case. For full functionality, you'd use the 'clsx' and 'tailwind-merge' libraries.
-    return inputs.filter(Boolean).join(' ');
-}
-
-
 export default function QuotePage() {
     return (
         <Suspense fallback={<div className="text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>}>
@@ -421,3 +497,5 @@ export default function QuotePage() {
         </Suspense>
     )
 }
+
+    
