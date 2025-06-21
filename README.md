@@ -36,7 +36,7 @@ Prerequisites:
 
 Installation:
 1. Clone the repository
-   git clone https://github.com/your-username/InstaPoem.git
+   git clone- [https://github.com/your-username/InstaPoem.git](https://github.com/Prithvi-Pawar/InstaPoem.git)
 2. Move into the project directory
    cd InstaPoem
 3. Install dependencies
