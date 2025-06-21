@@ -17,7 +17,7 @@ interface QuoteWithPoemContext extends Quote {
 }
 
 export default function QuotesPage() {
-  const { history, isHistoryLoading } = usePoemHistory();
+  const { history, isHistoryLoading, deleteQuoteFromHistory } = usePoemHistory();
 
   const allQuotes = useMemo((): QuoteWithPoemContext[] => {
     if (isHistoryLoading) return [];
@@ -33,7 +33,7 @@ export default function QuotesPage() {
             photoDataUri: item.photoDataUri,
             photoFileName: item.photoFileName,
         }));
-    });
+    }).sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime()); // Assuming quote ID is a timestamp or can be parsed as one for sorting
   }, [history, isHistoryLoading]);
 
   if (isHistoryLoading) {
@@ -68,7 +68,11 @@ export default function QuotesPage() {
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">
         {allQuotes.map(quote => (
-          <QuoteHistoryCard key={quote.id} quote={quote} />
+          <QuoteHistoryCard 
+            key={quote.id} 
+            quote={quote} 
+            onDelete={deleteQuoteFromHistory} 
+          />
         ))}
       </div>
     </div>

@@ -121,6 +121,15 @@ export function usePoemHistory() {
     }
   }, [getHistoryItem, saveHistoryItem]);
 
+  const deleteQuoteFromHistory = useCallback((poemId: string, quoteId: string) => {
+    const poemItem = getHistoryItem(poemId);
+    if (poemItem && poemItem.quotes) {
+      const updatedQuotes = poemItem.quotes.filter(q => q.id !== quoteId);
+      const updatedPoemItem = { ...poemItem, quotes: updatedQuotes };
+      saveHistoryItem(updatedPoemItem);
+    }
+  }, [getHistoryItem, saveHistoryItem]);
 
-  return { history, saveHistoryItem, getHistoryItem, deleteHistoryItem, isHistoryLoading, saveQuoteToHistory };
+
+  return { history, saveHistoryItem, getHistoryItem, deleteHistoryItem, isHistoryLoading, saveQuoteToHistory, deleteQuoteFromHistory };
 }

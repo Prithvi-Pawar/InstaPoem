@@ -5,8 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { PoemHistoryItem, Quote } from '@/lib/types';
-import { Edit2, FileImage, Palette } from 'lucide-react'; 
+import type { Quote } from '@/lib/types';
+import { Edit2, FileImage, Palette, Trash2 } from 'lucide-react'; 
 import { Badge } from '@/components/ui/badge';
 
 interface QuoteWithPoemContext extends Quote {
@@ -18,9 +18,10 @@ interface QuoteWithPoemContext extends Quote {
 
 interface QuoteHistoryCardProps {
   quote: QuoteWithPoemContext;
+  onDelete: (poemId: string, quoteId: string) => void;
 }
 
-export default function QuoteHistoryCard({ quote }: QuoteHistoryCardProps) {
+export default function QuoteHistoryCard({ quote, onDelete }: QuoteHistoryCardProps) {
   
   return (
     <Card className="flex flex-col h-full shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card/80 backdrop-blur-sm border-border/50">
@@ -54,7 +55,7 @@ export default function QuoteHistoryCard({ quote }: QuoteHistoryCardProps) {
             <Badge variant="secondary">{quote.emotion}</Badge>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end p-4 pt-3 border-t border-border/30">
+      <CardFooter className="flex justify-between items-center gap-2 p-4 pt-3 border-t border-border/30">
         <Button 
           asChild 
           variant="outline" 
@@ -65,6 +66,16 @@ export default function QuoteHistoryCard({ quote }: QuoteHistoryCardProps) {
             <Edit2 className="w-3.5 h-3.5 mr-1.5" />
             View / Edit
           </Link>
+        </Button>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          onClick={() => onDelete(quote.poemId, quote.id)} 
+          className="text-xs"
+          aria-label={`Delete quote`}
+        >
+          <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+          Delete
         </Button>
       </CardFooter>
     </Card>
