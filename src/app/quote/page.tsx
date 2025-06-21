@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2, Edit2 } from 'lucide-react';
 import { generateQuoteFromPoem } from '@/ai/flows/generate-quote-from-poem';
 import { translatePoem } from '@/ai/flows/translate-poem-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -265,49 +265,6 @@ function QuoteGenerator() {
                     </div>
                 </div>
                 
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-headline text-foreground/90">Customize Text</h3>
-                  <div className="space-y-2">
-                      <Label htmlFor="quote-editor">Quote Text</Label>
-                      <Textarea 
-                          id="quote-editor"
-                          value={editableQuoteText} 
-                          onChange={(e) => setEditableQuoteText(e.target.value)}
-                          placeholder="Generate a quote to start editing..."
-                          rows={4}
-                          className="bg-background/50"
-                          disabled={!currentQuote}
-                      />
-                  </div>
-                  <div className="space-y-2">
-                      <Label>Text Alignment</Label>
-                      <RadioGroup value={textAlignment} onValueChange={(val) => setTextAlignment(val as any)} className="flex gap-4 items-center">
-                          <Label htmlFor="align-top" className="flex items-center gap-2 cursor-pointer">
-                              <RadioGroupItem value="start" id="align-top" /> Top
-                          </Label>
-                          <Label htmlFor="align-middle" className="flex items-center gap-2 cursor-pointer">
-                              <RadioGroupItem value="center" id="align-middle" /> Middle
-                          </Label>
-                           <Label htmlFor="align-bottom" className="flex items-center gap-2 cursor-pointer">
-                              <RadioGroupItem value="end" id="align-bottom" /> Bottom
-                          </Label>
-                      </RadioGroup>
-                  </div>
-                   <div className="space-y-2 pt-2">
-                      <Label htmlFor="font-size-slider">Font Size ({fontSize}px)</Label>
-                      <Slider 
-                          id="font-size-slider"
-                          min={artisticMode ? 24 : 20} 
-                          max={artisticMode ? 64 : 48} 
-                          step={2} 
-                          value={[fontSize]} 
-                          onValueChange={(value) => setFontSize(value[0])}
-                      />
-                  </div>
-                </div>
-
                 <Button onClick={handleGenerateQuote} disabled={!selectedEmotion || isGenerating} className="w-full font-headline py-3 text-lg">
                     {isGenerating ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Sparkles className="w-5 h-5 mr-2" />}
                     {isGenerating ? 'Generating...' : 'Generate Quote'}
@@ -393,6 +350,53 @@ function QuoteGenerator() {
                                    />
                                 </div>
                             )}
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-card/70 backdrop-blur-sm border-border/30 shadow-lg">
+                        <CardHeader>
+                            <CardTitle className="font-headline text-xl text-accent flex items-center gap-2">
+                                <Edit2 className="w-5 h-5" /> Customize Appearance
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="quote-editor">Quote Text</Label>
+                                <Textarea 
+                                    id="quote-editor"
+                                    value={editableQuoteText} 
+                                    onChange={(e) => setEditableQuoteText(e.target.value)}
+                                    placeholder="Generate a quote to start editing..."
+                                    rows={4}
+                                    className="bg-background/50"
+                                    disabled={!currentQuote}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Text Alignment</Label>
+                                <RadioGroup value={textAlignment} onValueChange={(val) => setTextAlignment(val as any)} className="flex gap-4 items-center">
+                                    <Label htmlFor="align-top" className="flex items-center gap-2 cursor-pointer">
+                                        <RadioGroupItem value="start" id="align-top" /> Top
+                                    </Label>
+                                    <Label htmlFor="align-middle" className="flex items-center gap-2 cursor-pointer">
+                                        <RadioGroupItem value="center" id="align-middle" /> Middle
+                                    </Label>
+                                    <Label htmlFor="align-bottom" className="flex items-center gap-2 cursor-pointer">
+                                        <RadioGroupItem value="end" id="align-bottom" /> Bottom
+                                    </Label>
+                                </RadioGroup>
+                            </div>
+                            <div className="space-y-2 pt-2">
+                                <Label htmlFor="font-size-slider">Font Size ({fontSize}px)</Label>
+                                <Slider 
+                                    id="font-size-slider"
+                                    min={artisticMode ? 24 : 20} 
+                                    max={artisticMode ? 64 : 48} 
+                                    step={2} 
+                                    value={[fontSize]} 
+                                    onValueChange={(value) => setFontSize(value[0])}
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
