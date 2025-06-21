@@ -17,15 +17,15 @@ Project Structure
 
 InstaPoem/
 ├── src/
-│   ├── ai/                      # AI flows and logic<br>
-│   │   └── flows/               # Poem, quote, translation flows
-│   └── app/                     # Next.js pages and routing
-├── docs/                        # Project planning and blueprint
-├── public/                      # Static assets
-├── .vscode/                     # IDE settings
-├── package.json                 # Project dependencies
-├── tailwind.config.ts           # Tailwind CSS configuration
-├── next.config.ts               # Next.js configuration
+│   ├── ai/                      
+│   │   └── flows/               
+│   └── app/                   
+├── docs/                        
+├── public/                      
+├── .vscode/                     
+├── package.json                 
+├── tailwind.config.ts         
+├── next.config.ts               
 
 Getting Started
 ---------------
