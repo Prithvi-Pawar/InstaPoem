@@ -30,6 +30,13 @@ export function usePoemHistory() {
 
   const saveHistoryItem = useCallback((item: PoemHistoryItem) => {
     setHistory(prevHistory_InMemory => {
+      const currentItemInHistory = prevHistory_InMemory.find(h => h.id === item.id);
+      
+      // If item exists and is identical, return previous state to prevent re-render loop.
+      if (currentItemInHistory && JSON.stringify(currentItemInHistory) === JSON.stringify(item)) {
+        return prevHistory_InMemory;
+      }
+
       // Update in-memory history: new/updated item comes first
       const newInMemoryHistory = [item, ...prevHistory_InMemory.filter(h => h.id !== item.id)];
 
