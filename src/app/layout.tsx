@@ -27,6 +27,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet" crossOrigin="anonymous" />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-gradient-to-br from-[var(--background-start)] to-[var(--background-end)] text-foreground">
         <ThemeProvider

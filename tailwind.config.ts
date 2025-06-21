@@ -18,6 +18,11 @@ export default {
         cormorant: ['"Cormorant Garamond"', 'serif'],
         libre: ['"Libre Baskerville"', 'serif'],
         montserrat: ['Montserrat', 'sans-serif'],
+        georgia: ['Georgia', 'serif'],
+        lora: ['Lora', 'serif'],
+        raleway: ['Raleway', 'sans-serif'],
+        dancing: ['"Dancing Script"', 'cursive'],
+        allura: ['Allura', 'cursive'],
       },
       colors: {
         background: 'hsl(var(--background))',

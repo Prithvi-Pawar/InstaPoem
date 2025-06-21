@@ -8,6 +8,7 @@ import { usePoemHistory } from '@/hooks/use-poem-history';
 import type { PoemHistoryItem, Quote } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,9 +20,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { toPng } from 'html-to-image';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
+import { cn } from '@/lib/utils';
 
 const emotions = [
   'Love', 'Sadness', 'Happiness', 'Anger', 'Fear', 'Hope', 'Peace / Calm', 'Loneliness', 'Motivation'
@@ -34,7 +34,23 @@ const languageList = [
     { value: 'Marathi', label: 'Marathi' }, { value: 'Sanskrit', label: 'Sanskrit' },
 ];
 
-const MinimalLayout = ({ text, author, fontSize, positionX, positionY, onMouseDown }: { text: string; author: string, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void }) => (
+const quoteFonts = [
+    { value: 'font-playfair', label: 'Playfair Display' },
+    { value: 'font-libre', label: 'Libre Baskerville' },
+    { value: 'font-cormorant', label: 'Cormorant Garamond' },
+    { value: 'font-georgia', label: 'Georgia' },
+    { value: 'font-lora', label: 'Lora' },
+];
+
+const authorFonts = [
+    { value: 'font-montserrat', label: 'Montserrat' },
+    { value: 'font-cormorant', label: 'Cormorant' },
+    { value: 'font-raleway', label: 'Raleway' },
+    { value: 'font-dancing', label: 'Dancing Script' },
+    { value: 'font-allura', label: 'Allura' },
+];
+
+const MinimalLayout = ({ text, author, fontSize, positionX, positionY, onMouseDown, quoteFont, authorFont }: { text: string; author: string, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void, quoteFont: string, authorFont: string }) => (
     <div className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square">
         <div 
             onMouseDown={onMouseDown}
@@ -48,17 +64,17 @@ const MinimalLayout = ({ text, author, fontSize, positionX, positionY, onMouseDo
                 cursor: 'grab',
             }}
         >
-            <p className="font-playfair italic leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
+            <p className={cn("leading-relaxed italic", quoteFont)} style={{ fontSize: `${fontSize}px` }}>
                 “{text}”
             </p>
-            <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
+            <p className={cn("font-light text-lg mt-4 tracking-wider", authorFont)}>
                 - {author}
             </p>
         </div>
     </div>
 );
 
-const ArtisticLayout = ({ text, author, imageSrc, aspectRatio, fontSize, positionX, positionY, onMouseDown }: { text: string; author: string; imageSrc: string; aspectRatio: number | null, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void }) => (
+const ArtisticLayout = ({ text, author, imageSrc, aspectRatio, fontSize, positionX, positionY, onMouseDown, quoteFont, authorFont }: { text: string; author: string; imageSrc: string; aspectRatio: number | null, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void, quoteFont: string, authorFont: string }) => (
     <div 
         className="relative w-full overflow-hidden rounded-lg shadow-inner"
         style={{
@@ -90,10 +106,10 @@ const ArtisticLayout = ({ text, author, imageSrc, aspectRatio, fontSize, positio
             }}
         >
             <div>
-                <p className="font-libre leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
+                <p className={cn("leading-relaxed", quoteFont)} style={{ fontSize: `${fontSize}px` }}>
                     “{text}”
                 </p>
-                <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
+                <p className={cn("font-light text-lg mt-4 tracking-wider", authorFont)}>
                     - {author}
                 </p>
             </div>
@@ -122,6 +138,10 @@ function QuoteGenerator() {
   const [artisticMode, setArtisticMode] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
   
+  const [authorText, setAuthorText] = useState('InstaPoem');
+  const [quoteFont, setQuoteFont] = useState('font-playfair');
+  const [authorFont, setAuthorFont] = useState('font-cormorant');
+
   const quoteCardRef = useRef<HTMLDivElement>(null);
   const poemId = useMemo(() => searchParams.get('fromHistory'), [searchParams]);
 
@@ -292,7 +312,7 @@ function QuoteGenerator() {
     );
   }
   
-  const rightPanelAspectRatio = (artisticMode && imageAspectRatio) ? imageAspectRatio : '1 / 1';
+  const rightPanelAspectRatio = (artisticMode && imageAspectRatio) ? imageAspectRatio : 1;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -311,7 +331,7 @@ function QuoteGenerator() {
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div style={{ aspectRatio: imageAspectRatio || '16 / 9' }} className="relative w-full overflow-hidden rounded-md border">
+                <div style={{ aspectRatio: imageAspectRatio || 16 / 9 }} className="relative w-full overflow-hidden rounded-md border">
                     <Image src={poemItem.photoDataUri || 'https://placehold.co/600x400.png'} alt={poemItem.photoFileName || 'Poem inspiration'} layout="fill" objectFit="cover" className="rounded-md" />
                 </div>
                 <div className="space-y-4">
@@ -349,7 +369,7 @@ function QuoteGenerator() {
                 style={{ aspectRatio: rightPanelAspectRatio }}
              >
              {isGenerating ? (
-                <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full h-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in">
+                <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full h-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in aspect-square">
                     <div className="text-center text-muted-foreground">
                         <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
                         <p className="mt-2 font-medium">Crafting your quote...</p>
@@ -359,26 +379,30 @@ function QuoteGenerator() {
                 artisticMode ? (
                     <ArtisticLayout 
                         text={editableQuoteText} 
-                        author="InstaPoem" 
+                        author={authorText} 
                         imageSrc={poemItem.photoDataUri!} 
                         aspectRatio={imageAspectRatio}
                         fontSize={fontSize}
                         positionX={positionX}
                         positionY={positionY}
                         onMouseDown={handleMouseDown}
+                        quoteFont={quoteFont}
+                        authorFont={authorFont}
                     />
                 ) : (
                     <MinimalLayout 
                         text={editableQuoteText} 
-                        author="InstaPoem" 
+                        author={authorText}
                         fontSize={fontSize}
                         positionX={positionX}
                         positionY={positionY}
                         onMouseDown={handleMouseDown}
+                        quoteFont={quoteFont}
+                        authorFont={authorFont}
                     />
                 )
             ) : (
-                 <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full h-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in">
+                 <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in aspect-square">
                     <div className="text-center text-muted-foreground">
                         <p>Your quote will appear here.</p>
                     </div>
@@ -437,6 +461,39 @@ function QuoteGenerator() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="author-editor">Author Name</Label>
+                                <Input
+                                    id="author-editor"
+                                    value={authorText}
+                                    onChange={(e) => setAuthorText(e.target.value)}
+                                    placeholder="Enter author name..."
+                                    className="bg-background/50"
+                                    disabled={!currentQuote}
+                                />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="quote-font-select">Quote Font</Label>
+                                <Select value={quoteFont} onValueChange={setQuoteFont} disabled={!currentQuote}>
+                                    <SelectTrigger id="quote-font-select" className="bg-background/50">
+                                        <SelectValue placeholder="Select a font..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover/80 backdrop-blur-sm">
+                                        {quoteFonts.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="author-font-select">Author Font</Label>
+                                <Select value={authorFont} onValueChange={setAuthorFont} disabled={!currentQuote}>
+                                    <SelectTrigger id="author-font-select" className="bg-background/50">
+                                        <SelectValue placeholder="Select a font..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover/80 backdrop-blur-sm">
+                                        {authorFonts.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                              <div className="space-y-2">
                                 <Label htmlFor="quote-editor">Quote Text</Label>
                                 <Textarea 
@@ -497,5 +554,3 @@ export default function QuotePage() {
         </Suspense>
     )
 }
-
-    
