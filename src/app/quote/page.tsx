@@ -56,7 +56,7 @@ const ArtisticLayout = ({ quoteText, author, imageSrc, imageOrientation, quoteCa
         <svg className="absolute w-0 h-0">
             <defs>
                 <clipPath id="splash-mask" clipPathUnits="objectBoundingBox">
-                    <path d="M0.06,0.37 C-0.1,0.61,0.06,0.92,0.11,0.98 C0.16,1.04,0.3,0.97,0.49,0.98 C0.68,1,0.85,1.01,0.93,0.94 C1.01,0.87,1,0.72,0.98,0.51 C0.97,0.3,0.99,0.11,0.91,0.04 C0.83,-0.03,0.67,0,0.48,0.02 C0.29,0.03,0.14,0,0.1,0.07 C0.06,0.13,0.12,0.27,0.06,0.37 Z"></path>
+                    <path d="M0,0.48C0.07,0.39,0.13,0.52,0.2,0.45C0.27,0.38,0.32,0.53,0.4,0.47C0.48,0.41,0.53,0.58,0.6,0.5C0.67,0.42,0.72,0.55,0.8,0.48C0.88,0.4,0.93,0.53,1,0.46V1H0V0.48Z"></path>
                 </clipPath>
             </defs>
         </svg>
