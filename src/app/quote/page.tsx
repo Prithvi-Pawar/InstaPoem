@@ -40,6 +40,8 @@ const quoteFonts = [
     { value: 'font-cormorant', label: 'Cormorant Garamond' },
     { value: 'font-georgia', label: 'Georgia' },
     { value: 'font-lora', label: 'Lora' },
+    { value: 'font-montserrat', label: 'Montserrat' },
+    { value: 'font-italiana', label: 'Italiana' },
 ];
 
 const authorFonts = [
@@ -48,6 +50,8 @@ const authorFonts = [
     { value: 'font-raleway', label: 'Raleway' },
     { value: 'font-dancing', label: 'Dancing Script' },
     { value: 'font-allura', label: 'Allura' },
+    { value: 'font-lato', label: 'Lato Light' },
+    { value: 'font-josefin', label: 'Josefin Sans' },
 ];
 
 const MinimalLayout = ({ text, author, fontSize, positionX, positionY, onMouseDown, quoteFont, authorFont }: { text: string; author: string, fontSize: number, positionX: number, positionY: number, onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void, quoteFont: string, authorFont: string }) => (
@@ -120,7 +124,7 @@ const ArtisticLayout = ({ text, author, imageSrc, aspectRatio, fontSize, positio
 
 function QuoteGenerator() {
   const searchParams = useSearchParams();
-  const { getHistoryItem, saveQuoteToHistory, isHistoryLoading } = usePoemHistory();
+  const { getHistoryItem, saveQuoteToHistory, isHistoryLoading, deleteQuoteFromHistory } = usePoemHistory();
   const { toast } = useToast();
 
   const [poemItem, setPoemItem] = useState<PoemHistoryItem | null>(null);
@@ -347,7 +351,7 @@ function QuoteGenerator() {
                         </Select>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} />
+                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} className="custom-artistic-switch" />
                         <Label htmlFor="artistic-mode" className="font-medium text-foreground/90">Artistic Style</Label>
                     </div>
                 </div>
@@ -479,7 +483,7 @@ function QuoteGenerator() {
                                         <SelectValue placeholder="Select a font..." />
                                     </SelectTrigger>
                                     <SelectContent className="bg-popover/80 backdrop-blur-sm">
-                                        {quoteFonts.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                                        {quoteFonts.map(f => <SelectItem key={f.value} value={f.value} className={f.value}>{f.label}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -490,7 +494,7 @@ function QuoteGenerator() {
                                         <SelectValue placeholder="Select a font..." />
                                     </SelectTrigger>
                                     <SelectContent className="bg-popover/80 backdrop-blur-sm">
-                                        {authorFonts.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                                        {authorFonts.map(f => <SelectItem key={f.value} value={f.value} className={f.value}>{f.label}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>

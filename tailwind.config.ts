@@ -23,6 +23,9 @@ export default {
         raleway: ['Raleway', 'sans-serif'],
         dancing: ['"Dancing Script"', 'cursive'],
         allura: ['Allura', 'cursive'],
+        italiana: ['Italiana', 'serif'],
+        lato: ['Lato', 'sans-serif'],
+        josefin: ['"Josefin Sans"', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

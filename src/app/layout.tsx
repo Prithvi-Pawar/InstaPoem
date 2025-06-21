@@ -31,6 +31,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100&display=swap" rel="stylesheet" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Allura&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Italiana&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300&display=swap" rel="stylesheet" crossOrigin="anonymous" />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-gradient-to-br from-[var(--background-start)] to-[var(--background-end)] text-foreground">
         <ThemeProvider

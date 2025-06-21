@@ -186,3 +186,12 @@
   background-clip: text;
   color: transparent;
 }
+
+@layer components {
+  .custom-artistic-switch[data-state='unchecked'] {
+    @apply bg-black;
+  }
+  .dark .custom-artistic-switch[data-state='unchecked'] {
+    @apply bg-white;
+  }
+}
