@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2, Palette } from 'lucide-react';
+import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { generateQuoteFromPoem } from '@/ai/flows/generate-quote-from-poem';
 import { translatePoem } from '@/ai/flows/translate-poem-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -38,47 +38,49 @@ const MinimalLayout = ({ quoteText, author, quoteCardRef }: { quoteText: string;
         className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square"
     >
         <div className="flex flex-col items-center justify-center text-center">
-            <p className="font-playfair italic text-2xl md:text-3xl leading-relaxed">
+            <p className="font-playfair italic text-3xl leading-relaxed">
                 “{quoteText}”
             </p>
-            <p className="font-cormorant font-light text-base mt-4 tracking-wider">
+            <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
                 - {author}
             </p>
         </div>
     </div>
 );
 
-const ArtisticLayout = ({ quoteText, author, imageSrc, imageOrientation, quoteCardRef }: { quoteText: string; author: string; imageSrc: string; imageOrientation: 'vertical' | 'horizontal', quoteCardRef: React.RefObject<HTMLDivElement> }) => (
+const ArtisticLayout = ({ quoteText, author, imageSrc, quoteCardRef }: { quoteText: string; author: string; imageSrc: string; quoteCardRef: React.RefObject<HTMLDivElement> }) => (
     <div 
         ref={quoteCardRef}
-        className="bg-[#FDFBF6] dark:bg-stone-900 text-stone-800 dark:text-stone-200 min-h-[400px] w-full flex p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square overflow-hidden"
+        className="relative aspect-square w-full overflow-hidden rounded-lg shadow-inner"
+        style={{
+            backgroundImage: `url(${imageSrc})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+        }}
     >
-        <svg className="absolute w-0 h-0">
-            <defs>
-                <clipPath id="splash-mask" clipPathUnits="objectBoundingBox">
-                    <path d="M0,0.48C0.07,0.39,0.13,0.52,0.2,0.45C0.27,0.38,0.32,0.53,0.4,0.47C0.48,0.41,0.53,0.58,0.6,0.5C0.67,0.42,0.72,0.55,0.8,0.48C0.88,0.4,0.93,0.53,1,0.46V1H0V0.48Z"></path>
-                </clipPath>
-            </defs>
-        </svg>
-        <div className={cn("w-full h-full flex items-center justify-center gap-6", imageOrientation === 'horizontal' ? 'flex-col' : 'flex-row')}>
-            <div className={cn("relative", imageOrientation === 'horizontal' ? 'w-full h-1/2' : 'w-1/2 h-full')}>
-                <Image 
-                    src={imageSrc} 
-                    alt="Artistic background" 
-                    layout="fill" 
-                    objectFit="cover" 
-                    className="opacity-90"
-                    style={{ clipPath: 'url(#splash-mask)' }}
-                />
-            </div>
-            <div className={cn("relative flex flex-col justify-center", imageOrientation === 'horizontal' ? 'w-full h-1/2 text-center items-center' : 'w-1/2 h-full')}>
-                <p className="font-libre text-xl md:text-2xl leading-relaxed">
-                    “{quoteText}”
-                </p>
-                <p className="font-cormorant font-light text-sm mt-4 tracking-wider">
-                    - {author}
-                </p>
-            </div>
+        {/* This div adds a semi-transparent dark overlay to ensure text is readable on any image */}
+        <div className="absolute inset-0 bg-black/30" />
+        
+        {/* This div adds a subtle, seamless paint splash texture */}
+        <div 
+            className="absolute inset-0 bg-repeat mix-blend-overlay"
+            style={{
+                backgroundImage: `url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3OLi4ubm5uVlZWPj4+NjY2IiIiPj4+BgYF9fX1cXFxycnKvr6+uru+Hc3w5AAAAEXRSTlMAw8i/6LLA9O4S2dO0W1lVGC436gAAAOVJREFUeNrt1slOAkEURdGY0BptGABt3v//n/R3RpAQoGO6k9k/vC5sO3s7j2w+sQvI5hQ2kC4nC4V0I9/g0D5F4KR4qC4c2pT2vQoB5+o6wQ8f0FBd6DRk7u8UDax1qGZzI9nIqQ3i5bQ3QyDYi4w5jX1Wn3UaB5A5jT5sC6vSgD2EMh9e4nlyT4Ugl+eHwzxTTnwzEbgnA4YyqD/fOAPgC/wzxr0DzcL3ri8JcNpgyyI+dLTAmfJDNMGVCREpP2gSQJ0QET7v74fCfjwJp5yH2p4cR+iTqjYCQo2kAEj2d+OKQG7om4S4T1sV0C5f2hCw2hChAOT54Am1Wb4sRqCgAc2gQzGkQ3Ec6JkC3IuKB3wJpE2QCwDZoBLD4kQWY0wAMmJMyAm0SZAeYk2gAMi5M0WkFmmLAAmU0ydJgEmsm2ALiZdkBZmQxNwmok2gA0JJoA5GTaABzkfJgArcn2gD4s/pA3A5MEiQhGgw2QGajv+wA8Bms2e+nANg2A7M9sL4PAHbyX2sB8Bw4z2BB8CgENz5eNFZ68w3sS7CgQ3TzwwL8x/g1IuI5e2w/5wJAB4yfrxfe2wQYAEi+qgY+r33kAAAAAElFTkSuQmCC')`,
+                opacity: 0.15,
+            }}
+        />
+
+        {/* The text content container */}
+        <div 
+            className="relative z-10 flex h-full w-full flex-col items-center justify-center p-8 text-center text-white"
+            style={{ textShadow: '1px 1px 6px rgba(0,0,0,0.6)' }}
+        >
+            <p className="font-libre text-3xl leading-relaxed">
+                “{quoteText}”
+            </p>
+            <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
+                - {author}
+            </p>
         </div>
     </div>
 );
@@ -97,8 +99,7 @@ function QuoteGenerator() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
 
   const [artisticMode, setArtisticMode] = useState(false);
-  const [imageOrientation, setImageOrientation] = useState<'vertical' | 'horizontal'>('vertical');
-
+  
   const quoteCardRef = useRef<HTMLDivElement>(null);
   const poemId = useMemo(() => searchParams.get('fromHistory'), [searchParams]);
 
@@ -107,17 +108,6 @@ function QuoteGenerator() {
       const item = getHistoryItem(poemId);
       if (item) {
         setPoemItem(item);
-        if (item.photoDataUri) {
-          const img = document.createElement('img');
-          img.src = item.photoDataUri;
-          img.onload = () => {
-            if (img.naturalHeight > img.naturalWidth) {
-                setImageOrientation('vertical');
-            } else {
-                setImageOrientation('horizontal');
-            }
-          };
-        }
       }
     }
   }, [poemId, isHistoryLoading, getHistoryItem]);
@@ -270,7 +260,6 @@ function QuoteGenerator() {
                         quoteText={currentQuote.text} 
                         author="InstaPoem" 
                         imageSrc={poemItem.photoDataUri!} 
-                        imageOrientation={imageOrientation}
                         quoteCardRef={quoteCardRef}
                     />
                 ) : (
@@ -350,5 +339,3 @@ export default function QuotePage() {
         </Suspense>
     )
 }
-
-    
