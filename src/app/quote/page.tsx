@@ -327,7 +327,7 @@ function QuoteGenerator() {
         </p>
       </header>
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
-        <Card className="bg-card/70 backdrop-blur-sm border-border/30 shadow-lg sticky top-24">
+        <Card className="bg-card/70 backdrop-blur-sm border-border/30 shadow-lg md:sticky md:top-24">
             <CardHeader>
                 <CardTitle className="font-headline text-2xl text-accent flex items-center">
                     <Wand2 className="w-6 h-6 mr-2" />
@@ -345,13 +345,13 @@ function QuoteGenerator() {
                             <SelectTrigger id="emotion-select" className="bg-background/50">
                                 <SelectValue placeholder="Select an emotion..." />
                             </SelectTrigger>
-                            <SelectContent className="bg-popover/80 backdrop-blur-sm">
+                            <SelectContent className="bg-popover/80 backdrop-blur-xl">
                                 {emotions.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} className="custom-artistic-switch" />
+                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} className="data-[state=checked]:bg-sky-500" />
                         <Label htmlFor="artistic-mode" className="font-medium text-foreground/90">Artistic Style</Label>
                     </div>
                 </div>
