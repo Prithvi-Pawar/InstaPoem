@@ -15,8 +15,8 @@ Features
 Project Structure
 -----------------
 
-InstaPoem/
-├── src/
+InstaPoem/<br>
+├── src/<br>
 │   ├── ai/                      
 │   │   └── flows/               
 │   └── app/                   
