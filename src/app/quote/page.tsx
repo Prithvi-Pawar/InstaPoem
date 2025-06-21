@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { toPng } from 'html-to-image';
-import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
@@ -139,7 +138,7 @@ function QuoteGenerator() {
   const [positionY, setPositionY] = useState(50);
   const [fontSize, setFontSize] = useState(32);
 
-  const [artisticMode, setArtisticMode] = useState(false);
+  const [styleMode, setStyleMode] = useState<'minimal' | 'artistic'>('minimal');
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
   
   const [authorText, setAuthorText] = useState('InstaPoem');
@@ -316,7 +315,7 @@ function QuoteGenerator() {
     );
   }
   
-  const rightPanelAspectRatio = (artisticMode && imageAspectRatio) ? imageAspectRatio : 1;
+  const rightPanelAspectRatio = (styleMode === 'artistic' && imageAspectRatio) ? imageAspectRatio : 1;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -345,14 +344,29 @@ function QuoteGenerator() {
                             <SelectTrigger id="emotion-select" className="bg-background/50">
                                 <SelectValue placeholder="Select an emotion..." />
                             </SelectTrigger>
-                            <SelectContent className="bg-popover/80 backdrop-blur-xl">
+                            <SelectContent className="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg">
                                 {emotions.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} className="custom-artistic-switch" />
-                        <Label htmlFor="artistic-mode" className="font-medium text-foreground/90">Artistic Style</Label>
+                     <div className="space-y-2">
+                        <Label htmlFor="style-select" className="font-medium text-foreground/90">Choose a style</Label>
+                        <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" id="style-select">
+                            <Button 
+                                variant={styleMode === 'minimal' ? 'secondary' : 'ghost'}
+                                onClick={() => setStyleMode('minimal')}
+                                className="w-full h-9"
+                            >
+                                Minimal
+                            </Button>
+                            <Button
+                                variant={styleMode === 'artistic' ? 'secondary' : 'ghost'}
+                                onClick={() => setStyleMode('artistic')}
+                                className="w-full h-9"
+                            >
+                                Artistic
+                            </Button>
+                        </div>
                     </div>
                 </div>
                 
@@ -380,7 +394,7 @@ function QuoteGenerator() {
                     </div>
                 </div>
             ) : currentQuote ? (
-                artisticMode ? (
+                styleMode === 'artistic' ? (
                     <ArtisticLayout 
                         text={editableQuoteText} 
                         author={authorText} 
