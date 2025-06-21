@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2, PenLine, Palette } from 'lucide-react';
+import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2, Palette } from 'lucide-react';
 import { generateQuoteFromPoem } from '@/ai/flows/generate-quote-from-poem';
 import { translatePoem } from '@/ai/flows/translate-poem-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -38,10 +38,10 @@ const MinimalLayout = ({ quoteText, author, quoteCardRef }: { quoteText: string;
         className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square"
     >
         <div className="flex flex-col items-center justify-center text-center">
-            <p className="font-playfair italic text-xl md:text-2xl leading-relaxed">
+            <p className="font-playfair italic text-2xl md:text-3xl leading-relaxed">
                 “{quoteText}”
             </p>
-            <p className="font-cormorant font-light text-sm mt-4 tracking-wider">
+            <p className="font-cormorant font-light text-base mt-4 tracking-wider">
                 - {author}
             </p>
         </div>
@@ -72,7 +72,7 @@ const ArtisticLayout = ({ quoteText, author, imageSrc, imageOrientation, quoteCa
                 />
             </div>
             <div className={cn("relative flex flex-col justify-center", imageOrientation === 'horizontal' ? 'w-full h-1/2 text-center items-center' : 'w-1/2 h-full')}>
-                <p className="font-libre text-lg md:text-xl leading-relaxed">
+                <p className="font-libre text-xl md:text-2xl leading-relaxed">
                     “{quoteText}”
                 </p>
                 <p className="font-cormorant font-light text-sm mt-4 tracking-wider">
@@ -350,3 +350,5 @@ export default function QuotePage() {
         </Suspense>
     )
 }
+
+    
