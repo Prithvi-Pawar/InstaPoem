@@ -17,15 +17,15 @@ Project Structure
 
 InstaPoem/
 ├── src/
-│   ├── ai/                  # AI flows and logic
-│   │   └── flows/           # Poem, quote, translation flows
-│   └── app/                 # Next.js pages and routing
-├── docs/                    # Project planning and blueprint
-├── public/                  # Static assets
-├── .vscode/                 # IDE settings
-├── package.json             # Dependencies
-├── tailwind.config.ts       # Tailwind setup
-├── next.config.ts           # Next.js config
+│   ├── ai/                      # AI flows and logic
+│   │   └── flows/               # Poem, quote, translation flows
+│   └── app/                     # Next.js pages and routing
+├── docs/                        # Project planning and blueprint
+├── public/                      # Static assets
+├── .vscode/                     # IDE settings
+├── package.json                 # Project dependencies
+├── tailwind.config.ts           # Tailwind CSS configuration
+├── next.config.ts               # Next.js configuration
 
 Getting Started
 ---------------
@@ -57,7 +57,7 @@ The core AI logic is powered by Genkit flows:
 - generate-quote-from-poem.ts
 - translate-poem-flow.ts
 
-Modify or extend these flows inside `src/ai/flows/`.
+You can modify or extend these flows inside `src/ai/flows/`.
 
 Testing
 -------
@@ -81,4 +81,4 @@ Contributing
 Contact
 -------
 
-Made with ❤️ 
+Made with ❤️ by [Prithvi Pawar]
