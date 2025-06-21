@@ -17,7 +17,7 @@ Project Structure
 
 InstaPoem/
 ├── src/
-│   ├── ai/                      # AI flows and logic
+│   ├── ai/                      # AI flows and logic<br>
 │   │   └── flows/               # Poem, quote, translation flows
 │   └── app/                     # Next.js pages and routing
 ├── docs/                        # Project planning and blueprint
