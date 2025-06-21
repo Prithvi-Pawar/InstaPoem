@@ -4,12 +4,9 @@
 import { useState, useEffect, useRef } from 'react';
 import PhotoUploadForm from '@/components/home/PhotoUploadForm';
 import PoemDisplayEditor from '@/components/home/PoemDisplayEditor';
-import SchedulerFormWrapper from '@/components/home/SchedulerFormWrapper';
 import { usePoemHistory } from '@/hooks/use-poem-history';
 import type { PoemHistoryItem } from '@/lib/types';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Sparkles as SparklesIcon, FileImage, UploadCloud } from 'lucide-react';
+import { Sparkles as SparklesIcon } from 'lucide-react';
 
 export default function HomePage() {
   const [photoDataUri, setPhotoDataUri] = useState<string | null>(null);
@@ -23,7 +20,6 @@ export default function HomePage() {
   
   const { saveHistoryItem, getHistoryItem, isHistoryLoading } = usePoemHistory();
   const poemSectionRef = useRef<HTMLDivElement>(null);
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   // Ref to track if the initial load from history URL parameter has been processed for a specific ID
   const initialLoadFromHistoryProcessed = useRef<string | null>(null);
@@ -114,25 +110,11 @@ export default function HomePage() {
         hashtags: existingItem?.hashtags || [], 
         createdAt: currentPoemCreatedAt,
         scheduledAt: existingItem?.scheduledAt,
+        quotes: existingItem?.quotes || [], // Preserve existing quotes
       };
       saveHistoryItem(historyItem);
     }
-  }, [editedPoem, currentPoemId, currentPoemCreatedAt, photoDataUri, photoFileName, saveHistoryItem]);
-
-
-  const handlePostScheduled = (scheduledItem: PoemHistoryItem) => {
-    saveHistoryItem(scheduledItem);
-    setIsScheduleModalOpen(false); 
-  };
-  
-  const openScheduleModal = () => {
-    if (currentPoemId && currentPoemCreatedAt && photoDataUri && editedPoem) {
-       setIsScheduleModalOpen(true);
-    } else {
-        // Optionally, inform user they need a poem first
-        // toast({ title: "No poem to schedule", description: "Please generate or select a poem."});
-    }
-  };
+  }, [editedPoem, currentPoemId, currentPoemCreatedAt, photoDataUri, photoFileName, saveHistoryItem, getHistoryItem]);
 
 
   return (
@@ -191,27 +173,12 @@ export default function HomePage() {
           <PoemDisplayEditor
             photoDataUri={photoDataUri}
             photoFileName={photoFileName}
-            poem={generatedPoem} // Pass the original generated poem
-            editedPoem={editedPoem} // Pass the current state of the edited poem
-            onPoemChange={setEditedPoem} // Pass the state setter for editedPoem
-            onSchedulePost={openScheduleModal}
+            poem={generatedPoem}
+            editedPoem={editedPoem}
+            onPoemChange={setEditedPoem}
+            currentPoemId={currentPoemId}
           />
         </section>
-      )}
-
-      {/* Scheduler Modal - only available if there's an active poem to schedule */}
-      {currentPoemId && photoDataUri && (
-         <SchedulerFormWrapper
-            isOpen={isScheduleModalOpen}
-            setIsOpen={setIsScheduleModalOpen}
-            currentPoem={editedPoem} // Scheduler uses the latest edited version
-            currentPhotoDataUri={photoDataUri}
-            currentPhotoFileName={photoFileName}
-            onPostScheduled={handlePostScheduled}
-            currentPoemId={currentPoemId}
-            currentPoemCreatedAt={currentPoemCreatedAt}
-            initialCaption={editedPoem} // Caption defaults to the latest poem
-          />
       )}
     </div>
   );

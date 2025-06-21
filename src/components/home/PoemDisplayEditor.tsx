@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Edit3, Languages, Loader2, Copy, Check, CalendarDays, ScrollText } from 'lucide-react';
+import { Languages, Loader2, Copy, Check, ScrollText, Sparkles } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { translatePoem } from '@/ai/flows/translate-poem-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 interface PoemDisplayEditorProps {
   photoDataUri: string | null;
@@ -25,7 +26,7 @@ interface PoemDisplayEditorProps {
   poem: string | null; 
   editedPoem: string;
   onPoemChange: (newPoem: string) => void;
-  onSchedulePost: () => void;
+  currentPoemId: string | null;
 }
 
 export default function PoemDisplayEditor({ 
@@ -34,7 +35,7 @@ export default function PoemDisplayEditor({
   poem, 
   editedPoem, 
   onPoemChange,
-  onSchedulePost
+  currentPoemId
 }: PoemDisplayEditorProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [translatedPoem, setTranslatedPoem] = useState<string | null>(null);
@@ -169,24 +170,16 @@ export default function PoemDisplayEditor({
                 <Languages className="mr-2 h-4 w-4" /> Translate Poem
               </Button>
               <Button 
+                asChild
                 variant="default" 
                 className="font-headline text-sm flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
-                onClick={onSchedulePost}
-                aria-label="Schedule this post"
+                aria-label="Turn this poem into a quote"
               >
-                <CalendarDays className="mr-2 h-4 w-4" /> Schedule Post
+                <Link href={`/quote?fromHistory=${currentPoemId}`} scroll={true}>
+                    <Sparkles className="mr-2 h-4 w-4" /> Turn Poem into Quote
+                </Link>
               </Button>
             </div>
-             {/* Share to Instagram Button - Placeholder */}
-            <Button 
-                variant="outline" 
-                className="font-headline text-sm w-full border-primary text-primary hover:bg-primary/10 hover:text-primary"
-                disabled 
-                title="Share to Instagram (Feature coming soon)"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram mr-2 h-4 w-4"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
-                Share to Instagram (Soon)
-            </Button>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { PoemHistoryItem } from '@/lib/types';
+import type { PoemHistoryItem, Quote } from '@/lib/types';
 import { useState, useEffect, useCallback } from 'react';
 
 const HISTORY_KEY = 'instaPoemHistory';
@@ -95,5 +95,25 @@ export function usePoemHistory() {
     }
   }, []);
 
-  return { history, saveHistoryItem, getHistoryItem, deleteHistoryItem, isHistoryLoading };
+  const saveQuoteToHistory = useCallback((poemId: string, quote: Quote) => {
+    const poemItem = getHistoryItem(poemId);
+    if (poemItem) {
+      const existingQuotes = poemItem.quotes || [];
+      const quoteIndex = existingQuotes.findIndex(q => q.id === quote.id);
+      let updatedQuotes;
+      if (quoteIndex > -1) {
+        // Update existing quote
+        updatedQuotes = [...existingQuotes];
+        updatedQuotes[quoteIndex] = quote;
+      } else {
+        // Add new quote
+        updatedQuotes = [quote, ...existingQuotes];
+      }
+      const updatedPoemItem = { ...poemItem, quotes: updatedQuotes };
+      saveHistoryItem(updatedPoemItem);
+    }
+  }, [getHistoryItem, saveHistoryItem]);
+
+
+  return { history, saveHistoryItem, getHistoryItem, deleteHistoryItem, isHistoryLoading, saveQuoteToHistory };
 }

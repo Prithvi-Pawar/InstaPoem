@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PenLine, Home, ListOrdered, CalendarClock, Moon, Sun, Menu } from 'lucide-react';
+import { PenLine, Home, ListOrdered, Moon, Sun, Menu, MessageSquareQuote } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
-  SheetHeader, // Added import
-  SheetTitle,  // Added import
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from 'react';
@@ -24,7 +24,7 @@ export default function Header() {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/history', label: 'My Poems', icon: ListOrdered },
-    { href: '/schedule', label: 'Schedule', icon: CalendarClock },
+    { href: '/quotes', label: 'My Quotes', icon: MessageSquareQuote },
   ];
 
   // Reusable NavLink component for use in both desktop and mobile sheet
@@ -92,7 +92,7 @@ export default function Header() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col"> {/* Removed pt-8 */}
+            <SheetContent side="left" className="w-[280px] p-0 bg-card flex flex-col">
                 <SheetHeader className="p-4 border-b border-border/50">
                     <SheetTitle>
                         <Link href="/" className="flex items-center gap-2 text-xl font-headline text-primary" onClick={() => setIsMobileMenuOpen(false)}>
@@ -114,7 +114,7 @@ export default function Header() {
                 ))}
               </nav>
                <div className="p-4 mt-auto border-t border-border/50">
-                <p className="text-xs text-muted-foreground text-center">&copy; {new Date().getFullYear()} InstaPoem</p>
+                <p className="text-xs text-muted-foreground text-center">&copy; 2024 InstaPoem</p>
               </div>
             </SheetContent>
           </Sheet>
