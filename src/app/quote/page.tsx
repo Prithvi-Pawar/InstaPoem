@@ -19,6 +19,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { toPng } from 'html-to-image';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Slider } from '@/components/ui/slider';
 
 const emotions = [
   'Love', 'Sadness', 'Happiness', 'Anger', 'Fear', 'Hope', 'Peace / Calm', 'Loneliness', 'Motivation'
@@ -31,14 +34,20 @@ const languageList = [
     { value: 'Marathi', label: 'Marathi' }, { value: 'Sanskrit', label: 'Sanskrit' },
 ];
 
-const MinimalLayout = ({ quoteText, author, quoteCardRef }: { quoteText: string; author: string, quoteCardRef: React.RefObject<HTMLDivElement> }) => (
+const alignmentClasses: Record<string, string> = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+};
+
+const MinimalLayout = ({ text, author, quoteCardRef, alignment, fontSize }: { text: string; author: string, quoteCardRef: React.RefObject<HTMLDivElement>, alignment: string, fontSize: number }) => (
     <div 
         ref={quoteCardRef}
-        className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square"
+        className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square"
     >
-        <div className="flex flex-col items-center justify-center text-center">
-            <p className="font-playfair italic text-3xl leading-relaxed">
-                “{quoteText}”
+        <div className={cn("flex w-full flex-col text-center", alignmentClasses[alignment] || 'justify-center')}>
+            <p className="font-playfair italic leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
+                “{text}”
             </p>
             <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
                 - {author}
@@ -47,7 +56,7 @@ const MinimalLayout = ({ quoteText, author, quoteCardRef }: { quoteText: string;
     </div>
 );
 
-const ArtisticLayout = ({ quoteText, author, imageSrc, quoteCardRef, aspectRatio }: { quoteText: string; author: string; imageSrc: string; quoteCardRef: React.RefObject<HTMLDivElement>; aspectRatio: number | null }) => (
+const ArtisticLayout = ({ text, author, imageSrc, quoteCardRef, aspectRatio, alignment, fontSize }: { text: string; author: string; imageSrc: string; quoteCardRef: React.RefObject<HTMLDivElement>; aspectRatio: number | null, alignment: string, fontSize: number }) => (
     <div 
         ref={quoteCardRef}
         className="relative w-full overflow-hidden rounded-lg shadow-inner"
@@ -58,10 +67,7 @@ const ArtisticLayout = ({ quoteText, author, imageSrc, quoteCardRef, aspectRatio
             aspectRatio: aspectRatio || '1 / 1',
         }}
     >
-        {/* This div adds a semi-transparent dark overlay to ensure text is readable on any image */}
         <div className="absolute inset-0 bg-black/30" />
-        
-        {/* This div adds a subtle, seamless paint splash texture */}
         <div 
             className="absolute inset-0 bg-repeat mix-blend-overlay"
             style={{
@@ -69,18 +75,18 @@ const ArtisticLayout = ({ quoteText, author, imageSrc, quoteCardRef, aspectRatio
                 opacity: 0.15,
             }}
         />
-
-        {/* The text content container */}
         <div 
-            className="relative z-10 flex h-full w-full flex-col items-center justify-center p-8 text-center text-white"
+            className={cn("relative z-10 flex h-full w-full flex-col p-8 text-center text-white", alignmentClasses[alignment] || 'justify-center')}
             style={{ textShadow: '1px 1px 6px rgba(0,0,0,0.6)' }}
         >
-            <p className="font-libre text-3xl leading-relaxed">
-                “{quoteText}”
-            </p>
-            <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
-                - {author}
-            </p>
+            <div>
+                <p className="font-libre leading-relaxed" style={{ fontSize: `${fontSize}px` }}>
+                    “{text}”
+                </p>
+                <p className="font-cormorant font-light text-lg mt-4 tracking-wider">
+                    - {author}
+                </p>
+            </div>
         </div>
     </div>
 );
@@ -97,6 +103,10 @@ function QuoteGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  
+  const [editableQuoteText, setEditableQuoteText] = useState('');
+  const [textAlignment, setTextAlignment] = useState<'start' | 'center' | 'end'>('center');
+  const [fontSize, setFontSize] = useState(32);
 
   const [artisticMode, setArtisticMode] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
@@ -136,7 +146,7 @@ function QuoteGenerator() {
     })
     .then((dataUrl) => {
       const link = document.createElement('a');
-      const fileName = currentQuote?.text.substring(0, 20).replace(/\s+/g, '_').toLowerCase() || 'instapoem_quote';
+      const fileName = editableQuoteText.substring(0, 20).replace(/\s+/g, '_').toLowerCase() || 'instapoem_quote';
       link.download = `${fileName}.png`;
       link.href = dataUrl;
       link.click();
@@ -145,7 +155,7 @@ function QuoteGenerator() {
       console.error('Failed to download image', err);
       toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not create the image. Please try again.' });
     });
-  }, [quoteCardRef, currentQuote, toast]);
+  }, [quoteCardRef, editableQuoteText, toast]);
 
   const handleGenerateQuote = async () => {
     if (!poemItem || !selectedEmotion) {
@@ -154,6 +164,7 @@ function QuoteGenerator() {
     }
     setIsGenerating(true);
     setCurrentQuote(null);
+    setEditableQuoteText('');
     try {
         const result = await generateQuoteFromPoem({ poemText: poemItem.poem, emotion: selectedEmotion });
         const newQuote: Quote = {
@@ -162,8 +173,9 @@ function QuoteGenerator() {
             text: result.quote,
         };
         setCurrentQuote(newQuote);
+        setEditableQuoteText(newQuote.text);
         saveQuoteToHistory(poemItem.id, newQuote);
-        toast({ title: 'New quote generated!', description: 'You can now translate or download it.' });
+        toast({ title: 'New quote generated!', description: 'You can now customize, translate or download it.' });
     } catch (error) {
         console.error('Error generating quote:', error);
         toast({ variant: 'destructive', title: 'Quote Generation Failed', description: 'Please try again.' });
@@ -173,15 +185,16 @@ function QuoteGenerator() {
   };
   
   const handleTranslateQuote = async () => {
-    if (!currentQuote || !selectedLanguage) {
+    if (!currentQuote || !selectedLanguage || !editableQuoteText) {
         toast({ variant: "destructive", title: "Missing quote or language" });
         return;
     }
     setIsTranslating(true);
     try {
-        const result = await translatePoem({ poemText: currentQuote.text, targetLanguage: selectedLanguage });
+        const result = await translatePoem({ poemText: editableQuoteText, targetLanguage: selectedLanguage });
         const updatedQuote = { ...currentQuote, translatedText: result.translatedPoem, translatedLanguage: selectedLanguage };
         setCurrentQuote(updatedQuote);
+        setEditableQuoteText(result.translatedPoem);
         if(poemItem) saveQuoteToHistory(poemItem.id, updatedQuote);
     } catch (error) {
          console.error("Error translating quote:", error);
@@ -251,6 +264,50 @@ function QuoteGenerator() {
                         <Label htmlFor="artistic-mode" className="font-medium text-foreground/90">Artistic Style</Label>
                     </div>
                 </div>
+                
+                <Separator />
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-headline text-foreground/90">Customize Text</h3>
+                  <div className="space-y-2">
+                      <Label htmlFor="quote-editor">Quote Text</Label>
+                      <Textarea 
+                          id="quote-editor"
+                          value={editableQuoteText} 
+                          onChange={(e) => setEditableQuoteText(e.target.value)}
+                          placeholder="Generate a quote to start editing..."
+                          rows={4}
+                          className="bg-background/50"
+                          disabled={!currentQuote}
+                      />
+                  </div>
+                  <div className="space-y-2">
+                      <Label>Text Alignment</Label>
+                      <RadioGroup value={textAlignment} onValueChange={(val) => setTextAlignment(val as any)} className="flex gap-4 items-center">
+                          <Label htmlFor="align-top" className="flex items-center gap-2 cursor-pointer">
+                              <RadioGroupItem value="start" id="align-top" /> Top
+                          </Label>
+                          <Label htmlFor="align-middle" className="flex items-center gap-2 cursor-pointer">
+                              <RadioGroupItem value="center" id="align-middle" /> Middle
+                          </Label>
+                           <Label htmlFor="align-bottom" className="flex items-center gap-2 cursor-pointer">
+                              <RadioGroupItem value="end" id="align-bottom" /> Bottom
+                          </Label>
+                      </RadioGroup>
+                  </div>
+                   <div className="space-y-2 pt-2">
+                      <Label htmlFor="font-size-slider">Font Size ({fontSize}px)</Label>
+                      <Slider 
+                          id="font-size-slider"
+                          min={artisticMode ? 24 : 20} 
+                          max={artisticMode ? 64 : 48} 
+                          step={2} 
+                          value={[fontSize]} 
+                          onValueChange={(value) => setFontSize(value[0])}
+                      />
+                  </div>
+                </div>
+
                 <Button onClick={handleGenerateQuote} disabled={!selectedEmotion || isGenerating} className="w-full font-headline py-3 text-lg">
                     {isGenerating ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Sparkles className="w-5 h-5 mr-2" />}
                     {isGenerating ? 'Generating...' : 'Generate Quote'}
@@ -269,17 +326,21 @@ function QuoteGenerator() {
             ) : currentQuote ? (
                 artisticMode ? (
                     <ArtisticLayout 
-                        quoteText={currentQuote.text} 
+                        text={editableQuoteText} 
                         author="InstaPoem" 
                         imageSrc={poemItem.photoDataUri!} 
                         quoteCardRef={quoteCardRef}
                         aspectRatio={imageAspectRatio}
+                        alignment={textAlignment}
+                        fontSize={fontSize}
                     />
                 ) : (
                     <MinimalLayout 
-                        quoteText={currentQuote.text} 
+                        text={editableQuoteText} 
                         author="InstaPoem" 
                         quoteCardRef={quoteCardRef}
+                        alignment={textAlignment}
+                        fontSize={fontSize}
                     />
                 )
             ) : (
@@ -321,18 +382,15 @@ function QuoteGenerator() {
                                     Translate
                                 </Button>
                             </div>
-                            {(isTranslating || currentQuote.translatedText) && (
+                            {currentQuote.translatedText && (
                                 <div className="pt-2">
-                                    {isTranslating ? (
-                                        <Skeleton className="h-20 w-full" />
-                                    ) : (
-                                       <Textarea 
-                                            value={currentQuote.translatedText} 
-                                            readOnly 
-                                            rows={3} 
-                                            className="bg-muted/50 text-base leading-relaxed p-3 rounded-md shadow-inner"
-                                       />
-                                    )}
+                                   <Label>Last Translation ({currentQuote.translatedLanguage})</Label>
+                                   <Textarea 
+                                        value={currentQuote.translatedText} 
+                                        readOnly 
+                                        rows={3} 
+                                        className="mt-1 bg-muted/50 text-base leading-relaxed p-3 rounded-md shadow-inner"
+                                   />
                                 </div>
                             )}
                         </CardContent>
@@ -344,6 +402,13 @@ function QuoteGenerator() {
     </div>
   );
 }
+
+// Helper to apply cn utility to props
+const cn = (...inputs: any[]) => {
+    // A simplified version for this specific use case. For full functionality, you'd use the 'clsx' and 'tailwind-merge' libraries.
+    return inputs.filter(Boolean).join(' ');
+}
+
 
 export default function QuotePage() {
     return (
