@@ -351,7 +351,7 @@ function QuoteGenerator() {
                         </Select>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} className="data-[state=checked]:bg-sky-500" />
+                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} className="custom-artistic-switch" />
                         <Label htmlFor="artistic-mode" className="font-medium text-foreground/90">Artistic Style</Label>
                     </div>
                 </div>

@@ -188,6 +188,9 @@
 }
 
 @layer components {
+  .custom-artistic-switch[data-state='checked'] {
+    @apply bg-sky-500;
+  }
   .custom-artistic-switch[data-state='unchecked'] {
     @apply bg-black;
   }
