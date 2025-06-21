@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -13,6 +14,10 @@ export default {
         body: ['Alegreya', 'serif'],
         headline: ['Belleza', 'sans-serif'],
         code: ['monospace'],
+        playfair: ['"Playfair Display"', 'serif'],
+        cormorant: ['"Cormorant Garamond"', 'serif'],
+        libre: ['"Libre Baskerville"', 'serif'],
+        montserrat: ['Montserrat', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

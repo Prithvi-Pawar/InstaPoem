@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2, PenLine } from 'lucide-react';
+import { AlertTriangle, Download, Languages, Loader2, Sparkles, Wand2, PenLine, Palette } from 'lucide-react';
 import { generateQuoteFromPoem } from '@/ai/flows/generate-quote-from-poem';
 import { translatePoem } from '@/ai/flows/translate-poem-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toPng } from 'html-to-image';
+import { Switch } from '@/components/ui/switch';
 
 const emotions = [
   'Love', 'Sadness', 'Happiness', 'Anger', 'Fear', 'Hope', 'Peace / Calm', 'Loneliness', 'Motivation'
@@ -28,14 +29,60 @@ const languageList = [
     { value: 'Spanish', label: 'Spanish' }, { value: 'French', label: 'French' }, { value: 'German', label: 'German' }, 
     { value: 'Italian', label: 'Italian' }, { value: 'Portuguese', label: 'Portuguese' }, { value: 'Japanese', label: 'Japanese' },
     { value: 'Hindi', label: 'Hindi' }, { value: 'Arabic', label: 'Arabic' }, { value: 'Russian', label: 'Russian' },
+    { value: 'Marathi', label: 'Marathi' }, { value: 'Sanskrit', label: 'Sanskrit' },
 ];
 
-const fontList = [
-    { value: 'font-body', label: 'Serif (Alegreya)'},
-    { value: 'font-headline', label: 'Sans-serif (Belleza)'},
-    { value: '[font-family:cursive]', label: 'Cursive' },
-    { value: 'font-mono', label: 'Monospace' },
-];
+const MinimalLayout = ({ quoteText, author, quoteCardRef }: { quoteText: string; author: string, quoteCardRef: React.RefObject<HTMLDivElement> }) => (
+    <div 
+        ref={quoteCardRef}
+        className="bg-white dark:bg-black text-black dark:text-white min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square"
+    >
+        <div className="flex flex-col items-center justify-center text-center">
+            <p className="font-playfair italic text-xl md:text-2xl leading-relaxed">
+                “{quoteText}”
+            </p>
+            <p className="font-cormorant font-light text-sm mt-4 tracking-wider">
+                - {author}
+            </p>
+        </div>
+    </div>
+);
+
+const ArtisticLayout = ({ quoteText, author, imageSrc, imageOrientation, quoteCardRef }: { quoteText: string; author: string; imageSrc: string; imageOrientation: 'vertical' | 'horizontal', quoteCardRef: React.RefObject<HTMLDivElement> }) => (
+    <div 
+        ref={quoteCardRef}
+        className="bg-[#FDFBF6] dark:bg-stone-900 text-stone-800 dark:text-stone-200 min-h-[400px] w-full flex p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square overflow-hidden"
+    >
+        <svg className="absolute w-0 h-0">
+            <defs>
+                <clipPath id="splash-mask" clipPathUnits="objectBoundingBox">
+                    <path d="M0.06,0.37 C-0.1,0.61,0.06,0.92,0.11,0.98 C0.16,1.04,0.3,0.97,0.49,0.98 C0.68,1,0.85,1.01,0.93,0.94 C1.01,0.87,1,0.72,0.98,0.51 C0.97,0.3,0.99,0.11,0.91,0.04 C0.83,-0.03,0.67,0,0.48,0.02 C0.29,0.03,0.14,0,0.1,0.07 C0.06,0.13,0.12,0.27,0.06,0.37 Z"></path>
+                </clipPath>
+            </defs>
+        </svg>
+        <div className={cn("w-full h-full flex items-center justify-center gap-6", imageOrientation === 'horizontal' ? 'flex-col' : 'flex-row')}>
+            <div className={cn("relative", imageOrientation === 'horizontal' ? 'w-full h-1/2' : 'w-1/2 h-full')}>
+                <Image 
+                    src={imageSrc} 
+                    alt="Artistic background" 
+                    layout="fill" 
+                    objectFit="cover" 
+                    className="opacity-90"
+                    style={{ clipPath: 'url(#splash-mask)' }}
+                />
+            </div>
+            <div className={cn("relative flex flex-col justify-center", imageOrientation === 'horizontal' ? 'w-full h-1/2 text-center items-center' : 'w-1/2 h-full')}>
+                <p className="font-libre text-lg md:text-xl leading-relaxed">
+                    “{quoteText}”
+                </p>
+                <p className="font-cormorant font-light text-sm mt-4 tracking-wider">
+                    - {author}
+                </p>
+            </div>
+        </div>
+    </div>
+);
+
 
 function QuoteGenerator() {
   const searchParams = useSearchParams();
@@ -44,11 +91,13 @@ function QuoteGenerator() {
 
   const [poemItem, setPoemItem] = useState<PoemHistoryItem | null>(null);
   const [selectedEmotion, setSelectedEmotion] = useState<string>('');
-  const [selectedFont, setSelectedFont] = useState<string>('font-body');
   const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+
+  const [artisticMode, setArtisticMode] = useState(false);
+  const [imageOrientation, setImageOrientation] = useState<'vertical' | 'horizontal'>('vertical');
 
   const quoteCardRef = useRef<HTMLDivElement>(null);
   const poemId = useMemo(() => searchParams.get('fromHistory'), [searchParams]);
@@ -58,6 +107,17 @@ function QuoteGenerator() {
       const item = getHistoryItem(poemId);
       if (item) {
         setPoemItem(item);
+        if (item.photoDataUri) {
+          const img = document.createElement('img');
+          img.src = item.photoDataUri;
+          img.onload = () => {
+            if (img.naturalHeight > img.naturalWidth) {
+                setImageOrientation('vertical');
+            } else {
+                setImageOrientation('horizontal');
+            }
+          };
+        }
       }
     }
   }, [poemId, isHistoryLoading, getHistoryItem]);
@@ -72,11 +132,7 @@ function QuoteGenerator() {
 
     toPng(quoteCardRef.current, { 
       cacheBust: true, 
-      pixelRatio: 2, // Higher resolution
-      style: {
-        margin: '0',
-        // Inlining styles for download to ensure consistency
-      }
+      pixelRatio: 2,
     })
     .then((dataUrl) => {
       const link = document.createElement('a');
@@ -97,7 +153,7 @@ function QuoteGenerator() {
         return;
     }
     setIsGenerating(true);
-    setCurrentQuote(null); // Clear previous quote
+    setCurrentQuote(null);
     try {
         const result = await generateQuoteFromPoem({ poemText: poemItem.poem, emotion: selectedEmotion });
         const newQuote: Quote = {
@@ -161,11 +217,10 @@ function QuoteGenerator() {
       <header className="text-center mb-12">
         <h1 className="text-4xl font-headline text-primary mb-3">Turn Your Poem into a Quote</h1>
         <p className="text-lg text-foreground/80 max-w-3xl mx-auto">
-          Select an emotion and font to transform a piece of your poem into a powerful, shareable quote.
+          Select an emotion and style to transform a piece of your poem into a powerful, shareable quote.
         </p>
       </header>
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
-        {/* Left Panel */}
         <Card className="bg-card/70 backdrop-blur-sm border-border/30 shadow-lg sticky top-24">
             <CardHeader>
                 <CardTitle className="font-headline text-2xl text-accent flex items-center">
@@ -189,16 +244,9 @@ function QuoteGenerator() {
                             </SelectContent>
                         </Select>
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="font-select" className="font-medium text-foreground/90">Choose a font style</Label>
-                        <Select value={selectedFont} onValueChange={setSelectedFont}>
-                            <SelectTrigger id="font-select" className="bg-background/50">
-                                <SelectValue placeholder="Select a font..." />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover/80 backdrop-blur-sm">
-                                {fontList.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                    <div className="flex items-center space-x-2">
+                        <Switch id="artistic-mode" checked={artisticMode} onCheckedChange={setArtisticMode} />
+                        <Label htmlFor="artistic-mode" className="font-medium text-foreground/90">Artistic Style</Label>
                     </div>
                 </div>
                 <Button onClick={handleGenerateQuote} disabled={!selectedEmotion || isGenerating} className="w-full font-headline py-3 text-lg">
@@ -208,30 +256,38 @@ function QuoteGenerator() {
             </CardContent>
         </Card>
 
-        {/* Right Panel */}
         <div className="space-y-6">
-            <div ref={quoteCardRef} className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 min-h-[280px] flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative">
-                {isGenerating ? (
+             {isGenerating ? (
+                <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square">
                     <div className="text-center text-muted-foreground">
                         <Loader2 className="w-10 h-10 mx-auto animate-spin text-primary" />
                         <p className="mt-2 font-medium">Crafting your quote...</p>
                     </div>
-                ) : currentQuote ? (
-                    <blockquote className="text-center w-full space-y-6">
-                        <p className={cn("text-3xl lg:text-4xl leading-tight text-foreground/90", selectedFont)}>
-                            “{currentQuote.text}”
-                        </p>
-                    </blockquote>
+                </div>
+            ) : currentQuote ? (
+                artisticMode ? (
+                    <ArtisticLayout 
+                        quoteText={currentQuote.text} 
+                        author="InstaPoem" 
+                        imageSrc={poemItem.photoDataUri!} 
+                        imageOrientation={imageOrientation}
+                        quoteCardRef={quoteCardRef}
+                    />
                 ) : (
+                    <MinimalLayout 
+                        quoteText={currentQuote.text} 
+                        author="InstaPoem" 
+                        quoteCardRef={quoteCardRef}
+                    />
+                )
+            ) : (
+                 <div className="bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-800 dark:to-stone-950 min-h-[400px] w-full flex items-center justify-center p-8 rounded-lg shadow-inner border border-stone-200 dark:border-stone-700/50 animate-fade-in relative aspect-square">
                     <div className="text-center text-muted-foreground">
                         <p>Your quote will appear here.</p>
                     </div>
-                )}
-                 <div className="absolute bottom-4 right-4 flex items-center gap-1.5 text-foreground/40 dark:text-foreground/30">
-                    <PenLine className="w-3 h-3"/>
-                    <span className="font-headline text-xs">InstaPoem</span>
-                 </div>
-            </div>
+                </div>
+            )}
+
 
             {currentQuote && (
                 <div className="space-y-4 animate-fade-in">
